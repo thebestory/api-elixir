@@ -1,6 +1,6 @@
-defmodule TheBestory.Web.TopicView do
-  use TheBestory.Web, :view
-  alias TheBestory.Web.TopicView
+defmodule TheBestory.API.TopicView do
+  use TheBestory.API, :view
+  alias TheBestory.API.TopicView
 
   def render("index.json", %{topics: topics}) do
     %{data: render_many(topics, TopicView, "topic.json")}

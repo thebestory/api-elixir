@@ -20,10 +20,7 @@ defmodule TheBestory.Web.Router do
   end
 
   # Other scopes may use custom stacks.
-  scope "/api", TheBestory.Web do
-    pipe_through :api
-
-    resources "/topics", TopicController, except: [:new, :edit]
-    resources "/posts", PostController, except: [:new, :edit]
-  end
+  # scope "/api", TheBestory.Web do
+  #   pipe_through :api
+  # end
 end

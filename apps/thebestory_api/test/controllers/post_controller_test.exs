@@ -1,5 +1,5 @@
-defmodule TheBestory.Web.PostControllerTest do
-  use TheBestory.Web.ConnCase
+defmodule TheBestory.API.PostControllerTest do
+  use TheBestory.API.ConnCase
 
   alias TheBestory.Schema
   alias TheBestory.Schema.Post

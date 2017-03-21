@@ -1,6 +1,6 @@
-defmodule TheBestory.Web.PostView do
-  use TheBestory.Web, :view
-  alias TheBestory.Web.PostView
+defmodule TheBestory.API.PostView do
+  use TheBestory.API, :view
+  alias TheBestory.API.PostView
 
   def render("index.json", %{posts: posts}) do
     %{data: render_many(posts, PostView, "post.json")}

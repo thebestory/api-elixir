@@ -1,10 +1,10 @@
-defmodule TheBestory.Web.PostController do
-  use TheBestory.Web, :controller
+defmodule TheBestory.API.PostController do
+  use TheBestory.API, :controller
 
   alias TheBestory.Schema
   alias TheBestory.Schema.Post
 
-  action_fallback TheBestory.Web.FallbackController
+  action_fallback TheBestory.API.FallbackController
 
   def index(conn, _params) do
     posts = Schema.list_posts()

@@ -1,5 +1,5 @@
-defmodule TheBestory.Web.TopicControllerTest do
-  use TheBestory.Web.ConnCase
+defmodule TheBestory.API.TopicControllerTest do
+  use TheBestory.API.ConnCase
 
   alias TheBestory.Schema
   alias TheBestory.Schema.Topic
