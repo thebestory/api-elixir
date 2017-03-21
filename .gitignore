@@ -1,0 +1,12 @@
+# Project
+*.iml
+
+# Umbrella artifacts
+/_build
+/cover
+/deps
+*.ez
+*.beam
+
+# Generated on crash by the VM
+erl_crash.dump
