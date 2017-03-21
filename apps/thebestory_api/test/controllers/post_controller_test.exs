@@ -1,7 +1,6 @@
 defmodule TheBestory.API.PostControllerTest do
   use TheBestory.API.ConnCase
 
-  alias TheBestory.Schema
   alias TheBestory.Schema.Post
 
   @create_attrs %{content: "some content", is_published: true, is_removed: true, published_at: %DateTime{calendar: Calendar.ISO, day: 17, hour: 14, microsecond: {0, 6}, minute: 0, month: 4, second: 0, std_offset: 0, time_zone: "Etc/UTC", utc_offset: 0, year: 2010, zone_abbr: "UTC"}, reactions_count: 42, replies_count: 42}
@@ -9,7 +8,7 @@ defmodule TheBestory.API.PostControllerTest do
   @invalid_attrs %{content: nil, is_published: nil, is_removed: nil, published_at: nil, reactions_count: nil, replies_count: nil}
 
   def fixture(:post) do
-    {:ok, post} = Schema.create_post(@create_attrs)
+    {:ok, post} = Post.create(@create_attrs)
     post
   end
 

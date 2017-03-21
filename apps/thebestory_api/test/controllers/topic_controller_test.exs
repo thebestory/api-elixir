@@ -1,7 +1,6 @@
 defmodule TheBestory.API.TopicControllerTest do
   use TheBestory.API.ConnCase
 
-  alias TheBestory.Schema
   alias TheBestory.Schema.Topic
 
   @create_attrs %{description: "some description", icon: "some icon", is_active: true, slug: "some slug", posts_count: 42, title: "some title"}
@@ -9,7 +8,7 @@ defmodule TheBestory.API.TopicControllerTest do
   @invalid_attrs %{description: nil, icon: nil, is_active: nil, slug: nil, posts_count: nil, title: nil}
 
   def fixture(:topic) do
-    {:ok, topic} = Schema.create_topic(@create_attrs)
+    {:ok, topic} = Topic.create(@create_attrs)
     topic
   end
 

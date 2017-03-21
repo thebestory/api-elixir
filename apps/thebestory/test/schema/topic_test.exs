@@ -1,7 +1,6 @@
-defmodule TheBestory.SchemaTest do
+defmodule TheBestory.Schema.TopicTest do
   use TheBestory.DataCase
 
-  alias TheBestory.Schema
   alias TheBestory.Schema.Topic
 
   @create_attrs %{description: "some description", icon: "some icon", is_active: true, slug: "some slug", posts_count: 42, title: "some title"}
@@ -9,22 +8,22 @@ defmodule TheBestory.SchemaTest do
   @invalid_attrs %{description: nil, icon: nil, is_active: nil, slug: nil, posts_count: nil, title: nil}
 
   def fixture(:topic, attrs \\ @create_attrs) do
-    {:ok, topic} = Schema.create_topic(attrs)
+    {:ok, topic} = Topic.create(attrs)
     topic
   end
 
-  test "list_topics/1 returns all topics" do
+  test "list/1 returns all topics" do
     topic = fixture(:topic)
-    assert Schema.list_topics() == [topic]
+    assert Topic.list() == [topic]
   end
 
-  test "get_topic! returns the topic with given id" do
+  test "get! returns the topic with given id" do
     topic = fixture(:topic)
-    assert Schema.get_topic!(topic.id) == topic
+    assert Topic.get!(topic.id) == topic
   end
 
-  test "create_topic/1 with valid data creates a topic" do
-    assert {:ok, %Topic{} = topic} = Schema.create_topic(@create_attrs)
+  test "create/1 with valid data creates a topic" do
+    assert {:ok, %Topic{} = topic} = Topic.create(@create_attrs)
     assert topic.description == "some description"
     assert topic.icon == "some icon"
     assert topic.is_active == true
@@ -33,13 +32,13 @@ defmodule TheBestory.SchemaTest do
     assert topic.title == "some title"
   end
 
-  test "create_topic/1 with invalid data returns error changeset" do
-    assert {:error, %Ecto.Changeset{}} = Schema.create_topic(@invalid_attrs)
+  test "create/1 with invalid data returns error changeset" do
+    assert {:error, %Ecto.Changeset{}} = Topic.create(@invalid_attrs)
   end
 
-  test "update_topic/2 with valid data updates the topic" do
+  test "update/2 with valid data updates the topic" do
     topic = fixture(:topic)
-    assert {:ok, topic} = Schema.update_topic(topic, @update_attrs)
+    assert {:ok, topic} = Topic.update(topic, @update_attrs)
     assert %Topic{} = topic
     assert topic.description == "some updated description"
     assert topic.icon == "some updated icon"
@@ -49,20 +48,20 @@ defmodule TheBestory.SchemaTest do
     assert topic.title == "some updated title"
   end
 
-  test "update_topic/2 with invalid data returns error changeset" do
+  test "update/2 with invalid data returns error changeset" do
     topic = fixture(:topic)
-    assert {:error, %Ecto.Changeset{}} = Schema.update_topic(topic, @invalid_attrs)
-    assert topic == Schema.get_topic!(topic.id)
+    assert {:error, %Ecto.Changeset{}} = Topic.update(topic, @invalid_attrs)
+    assert topic == Topic.get!(topic.id)
   end
 
-  test "delete_topic/1 deletes the topic" do
+  test "delete/1 deletes the topic" do
     topic = fixture(:topic)
-    assert {:ok, %Topic{}} = Schema.delete_topic(topic)
-    assert_raise Ecto.NoResultsError, fn -> Schema.get_topic!(topic.id) end
+    assert {:ok, %Topic{}} = Topic.delete(topic)
+    assert_raise Ecto.NoResultsError, fn -> Topic.get!(topic.id) end
   end
 
-  test "change_topic/1 returns a topic changeset" do
+  test "change/1 returns a topic changeset" do
     topic = fixture(:topic)
-    assert %Ecto.Changeset{} = Schema.change_topic(topic)
+    assert %Ecto.Changeset{} = Topic.change(topic)
   end
 end

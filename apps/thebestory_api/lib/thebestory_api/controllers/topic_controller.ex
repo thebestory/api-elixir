@@ -1,18 +1,17 @@
 defmodule TheBestory.API.TopicController do
   use TheBestory.API, :controller
 
-  alias TheBestory.Schema
   alias TheBestory.Schema.Topic
 
   action_fallback TheBestory.API.FallbackController
 
   def index(conn, _params) do
-    topics = Schema.list_topics()
+    topics = Topic.list()
     render(conn, "index.json", topics: topics)
   end
 
-  def create(conn, %{"topic" => topic_params}) do
-    with {:ok, %Topic{} = topic} <- Schema.create_topic(topic_params) do
+  def create(conn, %{"topic" => params}) do
+    with {:ok, %Topic{} = topic} <- Topic.create(params) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", topic_path(conn, :show, topic))
@@ -21,21 +20,21 @@ defmodule TheBestory.API.TopicController do
   end
 
   def show(conn, %{"id" => id}) do
-    topic = Schema.get_topic!(id)
+    topic = Topic.get!(id)
     render(conn, "show.json", topic: topic)
   end
 
-  def update(conn, %{"id" => id, "topic" => topic_params}) do
-    topic = Schema.get_topic!(id)
+  def update(conn, %{"id" => id, "topic" => params}) do
+    topic = Topic.get!(id)
 
-    with {:ok, %Topic{} = topic} <- Schema.update_topic(topic, topic_params) do
+    with {:ok, %Topic{} = topic} <- Topic.update(topic, params) do
       render(conn, "show.json", topic: topic)
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    topic = Schema.get_topic!(id)
-    with {:ok, %Topic{}} <- Schema.delete_topic(topic) do
+    topic = Topic.get!(id)
+    with {:ok, %Topic{}} <- Topic.delete(topic) do
       send_resp(conn, :no_content, "")
     end
   end
