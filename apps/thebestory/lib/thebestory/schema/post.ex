@@ -51,6 +51,7 @@ defmodule TheBestory.Schema.Post do
 
   """
   def get!(id), do: Repo.get!(Post, id)
+  def get!(id, :preload), do: Repo.get!(Post |> preload(:topic), id)
 
   @doc """
   Creates a post.
@@ -122,7 +123,7 @@ defmodule TheBestory.Schema.Post do
 
   defp changeset(%Post{} = post, attrs) do
     post
-    |> cast(attrs, [:content, :is_approved, :is_removed, :topic_id])
-    |> validate_required([:content, :is_approved, :is_removed, :topic_id])
+    |> cast(attrs, [:content, :is_published, :is_removed, :topic_id])
+    |> validate_required([:content, :is_published, :is_removed, :topic_id])
   end
 end

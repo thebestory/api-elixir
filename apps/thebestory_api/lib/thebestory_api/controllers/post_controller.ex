@@ -20,7 +20,7 @@ defmodule TheBestory.API.PostController do
   end
 
   def show(conn, %{"id" => id}) do
-    post = Post.get!(id)
+    post = Post.get!(id, :preload)
     render(conn, "show.json", post: post)
   end
 
