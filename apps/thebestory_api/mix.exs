@@ -37,7 +37,8 @@ defmodule TheBestory.API.Mixfile do
      {:phoenix_ecto, "~> 3.2"},
      {:gettext, "~> 0.11"},
      {:thebestory, in_umbrella: true}, 
-     {:cowboy, "~> 1.0"}]
+     {:cowboy, "~> 1.0"},
+     {:authable, "~> 0.8.0"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
