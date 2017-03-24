@@ -93,7 +93,7 @@ defmodule TheBestory.Schema.Post do
   end
 
   @doc """
-  Deletes a Post.
+  Deletes a post.
 
   ## Examples
 

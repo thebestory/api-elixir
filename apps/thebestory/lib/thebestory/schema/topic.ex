@@ -91,7 +91,7 @@ defmodule TheBestory.Schema.Topic do
   end
 
   @doc """
-  Deletes a Topic.
+  Deletes a topic.
 
   ## Examples
 

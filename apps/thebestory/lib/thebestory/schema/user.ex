@@ -5,10 +5,10 @@ defmodule TheBestory.Schema.User do
 
   alias Comeonin.Bcrypt
   alias TheBestory.Repo
-  alias TheBestory.Schema.Application
-  alias TheBestory.Schema.Token
   alias TheBestory.Schema.Authorization
+  alias TheBestory.Schema.Application
   alias TheBestory.Schema.Post
+  alias TheBestory.Schema.Token
 
   @primary_key {:id, :string, []}
 
@@ -17,7 +17,7 @@ defmodule TheBestory.Schema.User do
     field :password, :string
     field :settings, :map
 
-    has_many :apps, Application
+    has_many :applications, Application
     has_many :tokens, Token
     has_many :authorizations, Authorization
 
@@ -166,7 +166,4 @@ defmodule TheBestory.Schema.User do
 
   def salt_password(password), 
     do: Bcrypt.hashpwsalt(password)
-
-  def generate_token, 
-    do: SecureRandom.urlsafe_base64
 end
