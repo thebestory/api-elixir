@@ -21,47 +21,15 @@ defmodule TheBestory.Schema.User do
   end
 
   @doc """
-  Returns the list of users.
-
-  ## Examples
-
-      iex> list()
-      [%User{}, ...]
-
-  """
-  def list do
-    Repo.all(User)
-  end
-
-  @doc """
   Gets a single user.
-
-  Raises `Ecto.NoResultsError` if the User does not exist.
-
-  ## Examples
-
-      iex> get!(123)
-      %User{}
-
-      iex> get!(456)
-      ** (Ecto.NoResultsError)
-
   """
+  def get(id), do: Repo.get(User, id)
   def get!(id), do: Repo.get!(User, id)
 
   @doc """
-  Creates a user.
-
-  ## Examples
-
-      iex> create(%{field: value})
-      {:ok, %User{}}
-
-      iex> create(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
+  Registers a user.
   """
-  def create(attrs \\ %{}) do
+  def register(attrs \\ %{}) do
     with {:ok, id} <- Snowflake.next_id() do
       %User{}
       |> changeset(attrs)
@@ -72,36 +40,11 @@ defmodule TheBestory.Schema.User do
 
   @doc """
   Updates a user.
-
-  ## Examples
-
-      iex> update(user, %{field: new_value})
-      {:ok, %User{}}
-
-      iex> update(user, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def update(%User{} = user, attrs) do
     user
     |> changeset(attrs)
     |> Repo.update()
-  end
-
-  @doc """
-  Deletes a user.
-
-  ## Examples
-
-      iex> delete(user)
-      {:ok, %User{}}
-
-      iex> delete(user)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete(%User{} = user) do
-    Repo.delete(user)
   end
 
   @doc """
@@ -119,29 +62,10 @@ defmodule TheBestory.Schema.User do
 
   defp changeset(%User{} = user, attrs) do
     user
-    |> cast(attrs, [:email, :password, :settings])
-    |> validate_required([:email, :password])
+    |> cast(attrs, [:username, :email, :password])
+    |> validate_required([:username, :email, :password])
+    |> validate_length(:username, min: 1, max: 64)
     |> validate_length(:email, min: 6, max: 255)
-  end
-
-  def settings_changeset(%User{} = user, attrs) do
-    user
-    |> cast(attrs, [:settings])
-    |> validate_required([:settings])
-  end
-
-  def registration_changeset(%User{} = user, attrs) do
-    user
-    |> changeset(attrs)
-    |> cast(attrs, [:password])
-    |> validate_length(:password, min: 8, max: 255)
-    |> put_password_hash
-  end
-
-  def password_changeset(%User{} = user, attrs) do
-    user
-    |> cast(attrs, [:password])
-    |> validate_required([:password])
     |> validate_length(:password, min: 8, max: 255)
     |> put_password_hash
   end
