@@ -6,6 +6,7 @@ defmodule TheBestory.Schema.Post do
   alias TheBestory.Repo
   alias TheBestory.Schema.Post
   alias TheBestory.Schema.Topic
+  alias TheBestory.Schema.User
 
   @primary_key {:id, :string, []}
 
@@ -19,6 +20,7 @@ defmodule TheBestory.Schema.Post do
     field :replies_count, :integer, default: 0
 
     belongs_to :topic, Topic, type: :string
+    belongs_to :author, User, type: :string
 
     timestamps()
   end
@@ -123,7 +125,7 @@ defmodule TheBestory.Schema.Post do
 
   defp changeset(%Post{} = post, attrs) do
     post
-    |> cast(attrs, [:content, :is_published, :is_removed, :topic_id])
-    |> validate_required([:content, :is_published, :is_removed, :topic_id])
+    |> cast(attrs, [:content, :is_published, :is_removed, :topic_id, :author_id])
+    |> validate_required([:content, :is_published, :is_removed, :topic_id, :author_id])
   end
 end

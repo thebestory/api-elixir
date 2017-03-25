@@ -8,7 +8,7 @@ use Mix.Config
 # General application configuration
 config :thebestory_api,
   namespace: TheBestory.API,
-  ecto_repos: []
+  ecto_repos: [TheBestory.Repo]
 
 # Configures the endpoint
 config :thebestory_api, TheBestory.API.Endpoint,

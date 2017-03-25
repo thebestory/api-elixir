@@ -10,6 +10,7 @@ defmodule TheBestory.Repo.Migrations.Create.Topics do
       add :icon, :string, default: "", null: false
       add :is_active, :boolean, default: true, null: false
       add :posts_count, :integer, default: 0, null: false
+      add :author_id, references(:users, type: :string, on_delete: :nothing, null: false)
 
       timestamps()
     end

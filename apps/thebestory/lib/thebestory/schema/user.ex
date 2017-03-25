@@ -11,9 +11,9 @@ defmodule TheBestory.Schema.User do
   @primary_key {:id, :string, []}
 
   schema "users" do
+    field :username, :string
     field :email, :string
     field :password, :string
-    field :settings, :map
 
     has_many :posts, Post
 
