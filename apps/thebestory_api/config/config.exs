@@ -27,11 +27,16 @@ config :guardian, Guardian,
   allowed_algos: ["RS512"], # optional
   verify_module: Guardian.JWT,  # optional
   issuer: "The Bestory Project",
-  ttl: { 7, :days },
+  ttl: {7, :days},
   allowed_drift: 2000,
   verify_issuer: true, # optional
   secret_key: {TheBestory.API.Guardian.SecretKey, :fetch},
   serializer: TheBestory.API.Guardian.Serializer
+
+config :guardian_db, GuardianDb,
+  repo: TheBestory.Repo,
+  schema_name: "guardian_tokens", # Optional, default is "guardian_tokens"
+  sweep_interval: 120 # 120 minutes
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
