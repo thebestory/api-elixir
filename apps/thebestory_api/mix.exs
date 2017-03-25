@@ -38,7 +38,8 @@ defmodule TheBestory.API.Mixfile do
      {:gettext, "~> 0.11"},
      {:thebestory, in_umbrella: true}, 
      {:cowboy, "~> 1.0"},
-     {:authable, "~> 0.8.0"}]
+     {:jose, "~> 1.8"},
+     {:guardian, "~> 0.14"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

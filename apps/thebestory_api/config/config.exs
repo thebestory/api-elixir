@@ -23,52 +23,15 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-config :authable,
-  ecto_repos: [],
-  repo: TheBestory.Repo,
-  resource_owner: TheBestory.Schema.User,
-  token_store: TheBestory.Schema.Token,
-  client: TheBestory.Schema.Application,
-  app: TheBestory.Schema.Authorization,
-  expires_in: %{
-    access_token: 24 * 60 * 60,
-    refresh_token: 7 * 24 * 60 * 60,
-    authorization_code: 60 * 60,
-    session_token: 30 * 24 * 60 * 60
-  },
-  grant_types: %{
-    authorization_code: Authable.GrantType.AuthorizationCode,
-    client_credentials: Authable.GrantType.ClientCredentials,
-    password: Authable.GrantType.Password,
-    refresh_token: Authable.GrantType.RefreshToken
-  },
-  auth_strategies: %{
-    headers: %{
-      "authorization" => [
-        {~r/Basic ([a-zA-Z\-_\+=]+)/, Authable.Authentication.Basic},
-        {~r/Bearer ([a-zA-Z\-_\+=]+)/, Authable.Authentication.Bearer},
-      ],
-      "x-api-token" => [
-        {~r/([a-zA-Z\-_\+=]+)/, Authable.Authentication.Bearer}
-      ]
-    },
-    query_params: %{
-      "access_token" => Authable.Authentication.Bearer
-    },
-    sessions: %{
-      "session_token" => Authable.Authentication.Session
-    }
-  },
-  scopes: ~w(read write),
-  renderer: Authable.Renderer.RestApi
-
-config :authable, Authable.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "",
-  password: "",
-  database: "",
-  hostname: "",
-  pool_size: 10
+config :guardian, Guardian,
+  allowed_algos: ["RS512"], # optional
+  verify_module: Guardian.JWT,  # optional
+  issuer: "The Bestory Project",
+  ttl: { 7, :days },
+  allowed_drift: 2000,
+  verify_issuer: true, # optional
+  secret_key: {TheBestory.API.Guardian.SecretKey, :fetch},
+  serializer: TheBestory.API.Guardian.Serializer
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
