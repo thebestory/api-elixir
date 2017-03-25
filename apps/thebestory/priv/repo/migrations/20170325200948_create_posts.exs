@@ -12,6 +12,7 @@ defmodule TheBestory.Repo.Migrations.Create.Posts do
       add :published_at, :utc_datetime, null: true
       add :edited_at, :utc_datetime, null: true
       add :topic_id, references(:topics, type: :string, on_delete: :nothing, null: false)
+      add :author_id, references(:users, type: :string, on_delete: :nothing, null: false)
 
       timestamps()
     end

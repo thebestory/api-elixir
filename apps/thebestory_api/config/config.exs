@@ -24,13 +24,13 @@ config :logger, :console,
   metadata: [:request_id]
 
 config :guardian, Guardian,
-  allowed_algos: ["RS512"], # optional
+
   verify_module: Guardian.JWT,  # optional
   issuer: "The Bestory Project",
   ttl: {7, :days},
   allowed_drift: 2000,
   verify_issuer: true, # optional
-  secret_key: {TheBestory.API.Guardian.SecretKey, :fetch},
+  secret_key: "woiuerojksldkjoierwoiejrlskjdf",
   serializer: TheBestory.API.Guardian.Serializer
 
 config :guardian_db, GuardianDb,

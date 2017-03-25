@@ -1,4 +1,4 @@
-defmodule TheBestory.Repo.Migrations.Create.Guardian do
+defmodule TheBestory.Repo.Migrations.Create.GuardianTokens do
   use Ecto.Migration
 
   def change do
@@ -11,6 +11,7 @@ defmodule TheBestory.Repo.Migrations.Create.Guardian do
       add :exp, :bigint
       add :jwt, :text
       add :claims, :map
+
       timestamps()
     end
   end

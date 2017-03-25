@@ -12,5 +12,7 @@ defmodule TheBestory.API.Router do
 
     resources "/topics", TopicController, except: [:new, :edit]
     resources "/posts", PostController, except: [:new, :edit]
+    resources "/users", UserController, only: [:create, :show, :update]
+    resources "/tokens", TokenController, only: [:create, :delete]
   end
 end

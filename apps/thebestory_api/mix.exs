@@ -39,7 +39,8 @@ defmodule TheBestory.API.Mixfile do
      {:thebestory, in_umbrella: true}, 
      {:cowboy, "~> 1.0"},
      {:jose, "~> 1.8"},
-     {:guardian, "~> 0.14"}]
+     {:guardian, "~> 0.14"},
+     {:guardian_db, "~> 0.7"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
