@@ -3,12 +3,10 @@ defmodule TheBestory.Schema.User do
 
   import Ecto.{Query, Changeset}, warn: false
 
-  alias Comeonin.Bcrypt
+  # alias Comeonin.Bcrypt
   alias TheBestory.Repo
-  alias TheBestory.Schema.Authorization
-  alias TheBestory.Schema.Application
   alias TheBestory.Schema.Post
-  alias TheBestory.Schema.Token
+  alias TheBestory.Schema.User
 
   @primary_key {:id, :string, []}
 
@@ -16,10 +14,6 @@ defmodule TheBestory.Schema.User do
     field :email, :string
     field :password, :string
     field :settings, :map
-
-    has_many :applications, Application
-    has_many :tokens, Token
-    has_many :authorizations, Authorization
 
     has_many :posts, Post
 
@@ -162,8 +156,10 @@ defmodule TheBestory.Schema.User do
   end
 
   def match_password(password, crypted_password),
-    do: Bcrypt.checkpw(password, crypted_password)
+    # do: Bcrypt.checkpw(password, crypted_password)
+    do: password == crypted_password
 
   def salt_password(password), 
-    do: Bcrypt.hashpwsalt(password)
+    # do: Bcrypt.hashpwsalt(password)
+    do: password
 end
