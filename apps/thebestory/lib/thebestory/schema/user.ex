@@ -3,10 +3,10 @@ defmodule TheBestory.Schema.User do
 
   import Ecto.{Query, Changeset}, warn: false
 
-  # alias Comeonin.Bcrypt
   alias TheBestory.Repo
   alias TheBestory.Schema.Post
   alias TheBestory.Schema.User
+  alias TheBestory.Utils.Password
 
   @primary_key {:id, :string, []}
 
@@ -18,6 +18,13 @@ defmodule TheBestory.Schema.User do
     has_many :posts, Post
 
     timestamps()
+  end
+
+  @doc """
+  Returns the list of users.
+  """
+  defp list do
+    Repo.all(User)
   end
 
   @doc """
@@ -39,9 +46,9 @@ defmodule TheBestory.Schema.User do
   def get_by_email!(email), do: Repo.get_by!(User, email: email)
 
   @doc """
-  Registers a user.
+  Creates a user.
   """
-  def register(attrs \\ %{}) do
+  def create(attrs \\ %{}) do
     with {:ok, id} <- Snowflake.next_id() do
       %User{}
       |> changeset(attrs)
@@ -60,13 +67,14 @@ defmodule TheBestory.Schema.User do
   end
 
   @doc """
+  Deletes a user.
+  """
+  defp delete(%User{} = user) do
+    Repo.delete(user)
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
-
-  ## Examples
-
-      iex> change(user)
-      %Ecto.Changeset{source: %User{}}
-
   """
   def change(%User{} = user) do
     changeset(user, %{})
@@ -85,17 +93,9 @@ defmodule TheBestory.Schema.User do
   defp put_password_hash(changeset) do
     case changeset do
       %Ecto.Changeset{valid?: true, changes: %{password: password}} ->
-        put_change(changeset, :password, salt_password(password))
+        put_change(changeset, :password, Password.hash(password))
       _ ->
         changeset
     end
   end
-
-  def match_password(password, crypted_password),
-    # do: Bcrypt.checkpw(password, crypted_password)
-    do: password == crypted_password
-
-  def salt_password(password), 
-    # do: Bcrypt.hashpwsalt(password)
-    do: password
 end
