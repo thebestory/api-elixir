@@ -10,12 +10,12 @@ defmodule TheBestory.Schema.Topic do
   @primary_key {:id, :string, []}
 
   schema "topics" do
+    field :title, :string
+    field :slug, :string
     field :description, :string, default: ""
     field :icon, :string, default: ""
     field :is_active, :boolean, default: false
-    field :slug, :string
     field :posts_count, :integer, default: 0
-    field :title, :string
 
     has_many :posts, Post
 
@@ -24,12 +24,6 @@ defmodule TheBestory.Schema.Topic do
 
   @doc """
   Returns the list of topics.
-
-  ## Examples
-
-      iex> list()
-      [%Topic{}, ...]
-
   """
   def list do
     Repo.all(Topic)
@@ -37,31 +31,12 @@ defmodule TheBestory.Schema.Topic do
 
   @doc """
   Gets a single topic.
-
-  Raises `Ecto.NoResultsError` if the Topic does not exist.
-
-  ## Examples
-
-      iex> get!(123)
-      %Topic{}
-
-      iex> get!(456)
-      ** (Ecto.NoResultsError)
-
   """
+  def get(id), do: Repo.get(Topic, id)
   def get!(id), do: Repo.get!(Topic, id)
 
   @doc """
   Creates a topic.
-
-  ## Examples
-
-      iex> create(%{field: value})
-      {:ok, %Topic{}}
-
-      iex> create(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def create(attrs \\ %{}) do
     with {:ok, id} <- Snowflake.next_id() do
@@ -74,15 +49,6 @@ defmodule TheBestory.Schema.Topic do
 
   @doc """
   Updates a topic.
-
-  ## Examples
-
-      iex> update(topic, %{field: new_value})
-      {:ok, %Topic{}}
-
-      iex> update(topic, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def update(%Topic{} = topic, attrs) do
     topic
@@ -92,28 +58,13 @@ defmodule TheBestory.Schema.Topic do
 
   @doc """
   Deletes a topic.
-
-  ## Examples
-
-      iex> delete(topic)
-      {:ok, %Topic{}}
-
-      iex> delete(topic)
-      {:error, %Ecto.Changeset{}}
-
   """
-  def delete(%Topic{} = topic) do
+  defp delete(%Topic{} = topic) do
     Repo.delete(topic)
   end
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking topic changes.
-
-  ## Examples
-
-      iex> change(topic)
-      %Ecto.Changeset{source: %Topic{}}
-
   """
   def change(%Topic{} = topic) do
     changeset(topic, %{})
@@ -121,7 +72,7 @@ defmodule TheBestory.Schema.Topic do
 
   defp changeset(%Topic{} = topic, attrs) do
     topic
-    |> cast(attrs, [:slug, :title, :description, :icon, :is_active])
-    |> validate_required([:slug, :title, :is_active])
+    |> cast(attrs, [:title, :slug, :description, :icon, :is_active])
+    |> validate_required([:title, :slug, :is_active])
   end
 end
