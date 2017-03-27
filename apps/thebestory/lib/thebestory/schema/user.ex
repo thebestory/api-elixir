@@ -4,7 +4,7 @@ defmodule TheBestory.Schema.User do
   import Ecto.{Query, Changeset}, warn: false
 
   alias TheBestory.Repo
-  alias TheBestory.Schema.Post
+  alias TheBestory.Schema.Story
   alias TheBestory.Schema.User
   alias TheBestory.Utils.Password
 
@@ -15,7 +15,10 @@ defmodule TheBestory.Schema.User do
     field :email, :string
     field :password, :string
 
-    has_many :posts, Post
+    field :stories_count, :integer, default: 0
+    field :comments_count, :integer, default: 0
+
+    has_many :stories, Story
 
     timestamps()
   end
@@ -82,11 +85,15 @@ defmodule TheBestory.Schema.User do
 
   defp changeset(%User{} = user, attrs) do
     user
-    |> cast(attrs, [:username, :email, :password])
-    |> validate_required([:username, :email, :password])
+    |> cast(attrs, [:username, :email, :password, :stories_count, 
+                    :comments_count])
+    |> validate_required([:username, :email, :password, :stories_count, 
+                          :comments_count])
     |> validate_length(:username, min: 1, max: 64)
     |> validate_length(:email, min: 6, max: 255)
     |> validate_length(:password, min: 8, max: 255)
+    |> validate_number(:stories_count, greater_than_or_equal_to: 0)
+    |> validate_number(:comments_count, greater_than_or_equal_to: 0)
     |> put_password_hash
   end
 

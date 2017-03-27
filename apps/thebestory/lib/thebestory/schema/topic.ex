@@ -4,7 +4,7 @@ defmodule TheBestory.Schema.Topic do
   import Ecto.{Query, Changeset}, warn: false
 
   alias TheBestory.Repo
-  alias TheBestory.Schema.Post
+  alias TheBestory.Schema.Story
   alias TheBestory.Schema.Topic
 
   @primary_key {:id, :string, []}
@@ -14,10 +14,12 @@ defmodule TheBestory.Schema.Topic do
     field :slug, :string
     field :description, :string, default: ""
     field :icon, :string, default: ""
-    field :is_active, :boolean, default: false
-    field :posts_count, :integer, default: 0
 
-    has_many :posts, Post
+    field :stories_count, :integer, default: 0
+
+    field :is_active, :boolean, default: false
+
+    has_many :stories, Story
 
     timestamps()
   end
@@ -72,7 +74,9 @@ defmodule TheBestory.Schema.Topic do
 
   defp changeset(%Topic{} = topic, attrs) do
     topic
-    |> cast(attrs, [:title, :slug, :description, :icon, :is_active])
-    |> validate_required([:title, :slug, :is_active])
+    |> cast(attrs, [:title, :slug, :description, :icon, :stories_count, 
+                    :is_active])
+    |> validate_required([:title, :slug, :stories_count, :is_active])
+    |> validate_number(:stories_count, greater_than_or_equal_to: 0)
   end
 end

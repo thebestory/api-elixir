@@ -13,11 +13,11 @@ defmodule TheBestory.Schema.Story do
   schema "stories" do
     field :content, :string
     
-    field :is_published, :boolean, default: false
-    field :is_removed, :boolean, default: false
-
     field :reactions_count, :integer, default: 0
     field :comments_count, :integer, default: 0
+
+    field :is_published, :boolean, default: false
+    field :is_removed, :boolean, default: false
 
     field :published_at, :utc_datetime
     field :edited_at, :utc_datetime
@@ -101,9 +101,13 @@ defmodule TheBestory.Schema.Story do
 
   defp changeset(%Story{} = story, attrs) do
     story
-    |> cast(attrs, [:content, :is_published, :is_removed])
-    |> validate_required([:content, :is_published, :is_removed])
+    |> cast(attrs, [:content, :reactions_count, :comments_count, :is_published, 
+                    :is_removed, :published_at, :edited_at])
+    |> validate_required([:content, :reactions_count, :comments_count, 
+                          :is_published, :is_removed])
     |> cast_assoc(:author, [:required])
     |> cast_assoc(:topic, [:required])
+    |> validate_number(:reactions_count, greater_than_or_equal_to: 0)
+    |> validate_number(:comments_count, greater_than_or_equal_to: 0)
   end
 end
