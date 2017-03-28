@@ -6,15 +6,16 @@ defmodule TheBestory.Store.User
   @doc """
   Return the list of users.
   """
-  def list do
-    Repo.all(User)
-  end
+  def list,
+    do: Repo.all(User)
 
   @doc """
   Get a single user.
   """
-  def get(id), do: Repo.get(User, id)
-  def get!(id), do: Repo.get!(User, id)
+  def get(id),
+    do: Repo.get(User, id)
+  def get!(id),
+    do: Repo.get!(User, id)
 
   @doc """
   Get a single user by it's username.
@@ -114,9 +115,9 @@ defmodule TheBestory.Store.User
   @doc """
   Delete a user.
   """
-  def delete(%User{} = user) do
-    Repo.delete(user)
-  end
+  def delete(%User{} = user)
+    do: Repo.delete(user)
+
 
   defp change(%User{} = user), 
     do: Ecto.Changeset.change(user)

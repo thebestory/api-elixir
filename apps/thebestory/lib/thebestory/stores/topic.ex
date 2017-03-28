@@ -5,15 +5,16 @@ defmodule TheBestory.Store.Topic
   @doc """
   Return the list of topics.
   """
-  def list do
-    Repo.all(Topic)
-  end
+  def list,
+    do: Repo.all(Topic)
 
   @doc """
   Get a single topic.
   """
-  def get(id), do: Repo.get(Topic, id)
-  def get!(id), do: Repo.get!(Topic, id)
+  def get(id),
+    do: Repo.get(Topic, id)
+  def get!(id),
+    do: Repo.get!(Topic, id)
 
   @doc """
   Create a topic.
@@ -61,9 +62,9 @@ defmodule TheBestory.Store.Topic
   @doc """
   Delete a topic.
   """
-  def delete(%Topic{} = topic) do
-    Repo.delete(topic)
-  end
+  def delete(%Topic{} = topic),
+    do: Repo.delete(topic)
+
 
   defp change(%Topic{} = topic), 
     do: Ecto.Changeset.change(topic)

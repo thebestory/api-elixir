@@ -5,18 +5,19 @@ defmodule TheBestory.Store.Comment
   @doc """
   Return the list of comments.
   """
-  defp list do
-    Repo.all(Comment)
-  end
+  defp list, 
+    do: Repo.all(Comment)
 
   @doc """
   Get a single comment.
   """
-  def get(id), do: Repo.get(Comment, id)
-  def get!(id), do: Repo.get!(Comment, id)
+  def get(id),
+    do: Repo.get(Comment, id)
+  def get!(id),
+    do: Repo.get!(Comment, id)
 
   @doc """
-  Creates a comment.
+  Create a comment.
   """
   def create(%{author: %User{} = author, story: %Story{} = story, 
                parent: %Comment{} = parent} = attrs) do
@@ -46,16 +47,20 @@ defmodule TheBestory.Store.Comment
   end
 
   @doc """
-  Updates a comment.
+  Update a comment.
   """
   def update(%Comment{} = comment, attrs \\ %{}) do
-    Enum.reduce([:author, :story, :parent], comment |> change,
-                fn(ref, comment) ->
+    refs = [:author, :story, :parent]
+
+    Enum.reduce(
+      refs,
+      comment
+      |> Repo.preload(refs)
+      |> change,
+      fn(ref, comment) ->
       case Map.has_key?(attrs, ref) do
-        true -> comment
-                |> Repo.preload([ref])
-                |> put_assoc(ref, Map.get(attrs, ref))
-        _ -> comment
+        true -> comment |> put_assoc(ref, Map.get(attrs, ref))
+           _ -> comment
       end
     end)
     |> changeset(attrs)
@@ -65,9 +70,9 @@ defmodule TheBestory.Store.Comment
   @doc """
   Delete a comment.
   """
-  def delete(%Comment{} = comment) do
-    Repo.delete(comment)
-  end
+  def delete(%Comment{} = comment),
+    do: Repo.delete(comment)
+
 
   defp change(%Comment{} = comment), 
     do: Ecto.Changeset.change(comment)
