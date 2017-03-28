@@ -1,4 +1,6 @@
-defmodule TheBestory.Store.Topic
+defmodule TheBestory.Store.Topic do
+  import Ecto.{Query, Changeset}, warn: false
+
   alias TheBestory.Repo
   alias TheBestory.Schema.Topic
 
@@ -66,9 +68,6 @@ defmodule TheBestory.Store.Topic
     do: Repo.delete(topic)
 
 
-  defp change(%Topic{} = topic), 
-    do: Ecto.Changeset.change(topic)
-
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
     |> public_changeset(attrs)
@@ -83,7 +82,7 @@ defmodule TheBestory.Store.Topic
 
   defp counters_changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
-    |> cast(attrs, :stories_count])
+    |> cast(attrs, [:stories_count])
     |> validate_required([:stories_count])
     |> validate_number(:stories_count, greater_than_or_equal_to: 0)
   end

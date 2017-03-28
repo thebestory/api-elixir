@@ -1,4 +1,6 @@
-defmodule TheBestory.Store.User
+defmodule TheBestory.Store.User do
+  import Ecto.{Query, Changeset}, warn: false
+
   alias TheBestory.Repo
   alias TheBestory.Schema.User
   alias TheBestory.Utils.Password
@@ -20,14 +22,18 @@ defmodule TheBestory.Store.User
   @doc """
   Get a single user by it's username.
   """
-  def get_by_username(username), do: Repo.get_by(User, username: username)
-  def get_by_username!(username), do: Repo.get_by!(User, username: username)
+  def get_by_username(username),
+    do: Repo.get_by(User, username: username)
+  def get_by_username!(username),
+    do: Repo.get_by!(User, username: username)
 
   @doc """
   Get a single user by it's email.
   """
-  def get_by_email(email), do: Repo.get_by(User, email: email)
-  def get_by_email!(email), do: Repo.get_by!(User, email: email)
+  def get_by_email(email),
+    do: Repo.get_by(User, email: email)
+  def get_by_email!(email),
+    do: Repo.get_by!(User, email: email)
 
   @doc """
   Register a new user.
@@ -115,12 +121,9 @@ defmodule TheBestory.Store.User
   @doc """
   Delete a user.
   """
-  def delete(%User{} = user)
+  def delete(%User{} = user),
     do: Repo.delete(user)
 
-
-  defp change(%User{} = user), 
-    do: Ecto.Changeset.change(user)
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset

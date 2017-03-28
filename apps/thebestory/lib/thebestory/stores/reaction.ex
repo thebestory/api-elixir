@@ -1,6 +1,9 @@
-defmodule TheBestory.Store.Reaction
+defmodule TheBestory.Store.Reaction do
+  import Ecto.{Query, Changeset}, warn: false
+
   alias TheBestory.Repo
   alias TheBestory.Schema.Reaction
+  alias TheBestory.Schema.User
 
   @doc """
   Return the list of reactions.
@@ -19,7 +22,7 @@ defmodule TheBestory.Store.Reaction
   @doc """
   Create a reaction.
   """
-  def create(%{user: %User = user} = attrs) do
+  def create(%{user: %User{} = user} = attrs) do
     with {:ok, id} <- Snowflake.next_id() do
       %Reaction{}
       |> change
@@ -34,7 +37,6 @@ defmodule TheBestory.Store.Reaction
   Update a reaction.
   """
   def update(%Reaction{} = reaction, attrs) do
-  def update(%Reaction{} = reaction, attrs) do
     refs = [:user]
 
     Enum.reduce(
@@ -43,25 +45,22 @@ defmodule TheBestory.Store.Reaction
       |> Repo.preload(refs)
       |> change,
       fn(ref, reaction) ->
-      case Map.has_key?(attrs, ref) do
-        true -> reaction |> put_assoc(ref, Map.get(attrs, ref))
-           _ -> reaction
+        case Map.has_key?(attrs, ref) do
+          true -> reaction |> put_assoc(ref, Map.get(attrs, ref))
+             _ -> reaction
+        end
       end
-    end)
+    )
     |> changeset(attrs)
     |> Repo.update()
-  end
   end
 
   @doc """
   Delete a reaction.
   """
-  def delete(%Reaction{} = reaction)
+  def delete(%Reaction{} = reaction),
     do: Repo.delete(reaction)
 
-
-  defp change(%Reaction{} = reaction), 
-    do: Ecto.Changeset.change(reaction)
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
@@ -69,7 +68,7 @@ defmodule TheBestory.Store.Reaction
   end
 
   defp create_changeset(%Ecto.Changeset{} = changeset, attrs) do
-    reaction
+    changeset
     |> cast(attrs, [:object_type, :object_id])
     |> validate_required([:object_type, :object_id])
     |> cast_assoc(:user, [:required])

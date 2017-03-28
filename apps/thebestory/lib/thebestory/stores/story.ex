@@ -1,6 +1,11 @@
-defmodule TheBestory.Store.Story
+defmodule TheBestory.Store.Story do
+  import Ecto.{Query, Changeset}, warn: false
+
   alias TheBestory.Repo
   alias TheBestory.Schema.Story
+  alias TheBestory.Schema.Topic
+  alias TheBestory.Schema.User
+  alias TheBestory.Store
 
   @reaction_object_type "story"
 
@@ -46,11 +51,11 @@ defmodule TheBestory.Store.Story
       |> Repo.preload(refs)
       |> change,
       fn(ref, story) ->
-      case Map.has_key?(attrs, ref) do
-        true -> story |> put_assoc(ref, Map.get(attrs, ref))
-           _ -> story
-      end
-    end)
+        case Map.has_key?(attrs, ref) do
+          true -> story |> put_assoc(ref, Map.get(attrs, ref))
+             _ -> story
+        end
+      end)
     |> changeset(attrs)
     |> Repo.update()
   end
@@ -67,10 +72,10 @@ defmodule TheBestory.Store.Story
               object_id: story.id,
               user: user
             ),
-           {:ok, _} <- increment_reactions_counter do
+           {:ok, _} <- increment_reactions_counter(story) do
         {:ok, reaction}
       else
-        {:error, :something_wrong}
+        _ -> {:error, :something_wrong}
       end
     end)
   end
@@ -122,9 +127,6 @@ defmodule TheBestory.Store.Story
     do: Repo.delete(story)
 
 
-  defp change(%Story{} = story), 
-    do: Ecto.Changeset.change(story)
-
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
     |> public_changeset(attrs)
@@ -139,7 +141,7 @@ defmodule TheBestory.Store.Story
     |> validate_required([:content])
   end
 
-  defp create_changeset(%Ecto.Changeset{} = changeset, attrs) do
+  defp create_changeset(%Ecto.Changeset{} = changeset, _attrs) do
     changeset
     |> cast_assoc(:author, [:required])
     |> cast_assoc(:topic, [:required])

@@ -1,9 +1,6 @@
 defmodule TheBestory.Schema.Comment do
   use Ecto.Schema
 
-  import Ecto.{Query, Changeset}, warn: false
-
-  alias TheBestory.Repo
   alias TheBestory.Schema.Comment
   alias TheBestory.Schema.Story
   alias TheBestory.Schema.User

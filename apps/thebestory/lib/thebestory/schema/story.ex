@@ -1,10 +1,6 @@
 defmodule TheBestory.Schema.Story do
   use Ecto.Schema
 
-  import Ecto.{Query, Changeset}, warn: false
-
-  alias TheBestory.Repo
-  alias TheBestory.Schema.Story
   alias TheBestory.Schema.Topic
   alias TheBestory.Schema.User
 

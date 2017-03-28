@@ -1,6 +1,10 @@
-defmodule TheBestory.Store.Comment
+defmodule TheBestory.Store.Comment do
+  import Ecto.{Query, Changeset}, warn: false
+
   alias TheBestory.Repo
   alias TheBestory.Schema.Comment
+  alias TheBestory.Schema.Story
+  alias TheBestory.Schema.User
   alias TheBestory.Store
 
   @reaction_object_type "comment"
@@ -8,7 +12,7 @@ defmodule TheBestory.Store.Comment
   @doc """
   Return the list of comments.
   """
-  defp list, 
+  def list, 
     do: Repo.all(Comment)
 
   @doc """
@@ -32,7 +36,7 @@ defmodule TheBestory.Store.Comment
       |> put_assoc(:story, story)
       |> put_assoc(:parent, parent)
       |> changeset(attrs)
-      |> put_change(:id, Integer.to_string(id))
+      |> Ecto.Changeset.put_change(:id, Integer.to_string(id))
       |> Repo.insert()
     end
   end
@@ -61,11 +65,11 @@ defmodule TheBestory.Store.Comment
       |> Repo.preload(refs)
       |> change,
       fn(ref, comment) ->
-      case Map.has_key?(attrs, ref) do
-        true -> comment |> put_assoc(ref, Map.get(attrs, ref))
-           _ -> comment
-      end
-    end)
+        case Map.has_key?(attrs, ref) do
+          true -> comment |> put_assoc(ref, Map.get(attrs, ref))
+             _ -> comment
+        end
+      end)
     |> changeset(attrs)
     |> Repo.update()
   end
@@ -82,10 +86,10 @@ defmodule TheBestory.Store.Comment
               object_id: comment.id,
               user: user
             ),
-           {:ok, _} <- increment_reactions_counter do
+           {:ok, _} <- increment_reactions_counter(comment) do
         {:ok, reaction}
       else
-        {:error, :something_wrong}
+        _ -> {:error, :something_wrong}
       end
     end)
   end
@@ -137,9 +141,6 @@ defmodule TheBestory.Store.Comment
     do: Repo.delete(comment)
 
 
-  defp change(%Comment{} = comment), 
-    do: Ecto.Changeset.change(comment)
-
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
     |> public_changeset(attrs)
@@ -154,7 +155,7 @@ defmodule TheBestory.Store.Comment
     |> validate_required([:content])
   end
 
-  defp create_changeset(%Ecto.Changeset{} = changeset, attrs) do
+  defp create_changeset(%Ecto.Changeset{} = changeset, _attrs) do
     changeset
     |> cast_assoc(:author, [:required])
     |> cast_assoc(:story, [:required])
