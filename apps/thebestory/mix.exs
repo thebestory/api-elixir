@@ -33,8 +33,7 @@ defmodule TheBestory.Mixfile do
   defp deps do
     [{:postgrex, ">= 0.0.0"},
      {:ecto, "~> 2.1"},
-     {:snowflake, "~> 1.0.0"},
-     {:comeonin, "~> 3.0"}]
+     {:snowflake, "~> 1.0.0"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
