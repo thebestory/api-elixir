@@ -4,6 +4,13 @@ defmodule TheBestory.Store.User
   alias TheBestory.Utils.Password
 
   @doc """
+  Return the list of users.
+  """
+  def list do
+    Repo.all(User)
+  end
+
+  @doc """
   Get a single user.
   """
   def get(id), do: Repo.get(User, id)
@@ -37,10 +44,10 @@ defmodule TheBestory.Store.User
   @doc """
   Update user parameters.
   """
-  def update_parameters(%User{} = user, attrs \\ %{}) do
+  def update(%User{} = user, attrs \\ %{}) do
     user
     |> change
-    |> parameters_changeset
+    |> parameters_changeset(attrs)
     |> Repo.update()
   end
 
@@ -104,13 +111,20 @@ defmodule TheBestory.Store.User
     |> Repo.update()
   end
 
+  @doc """
+  Delete a user.
+  """
+  def delete(%User{} = user) do
+    Repo.delete(user)
+  end
+
   defp change(%User{} = user), 
     do: Ecto.Changeset.change(user)
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
-    |> parameters_changeset
-    |> counters_changeset
+    |> parameters_changeset(attrs)
+    |> counters_changeset(attrs)
   end
 
   defp parameters_changeset(%Ecto.Changeset{} = changeset, attrs) do
