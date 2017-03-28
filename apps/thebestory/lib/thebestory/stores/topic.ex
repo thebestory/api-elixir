@@ -34,7 +34,7 @@ defmodule TheBestory.Store.Topic
   def update(%Topic{} = topic, attrs \\ %{}) do
     topic
     |> change
-    |> main_changeset(attrs)
+    |> changeset(attrs)
     |> Repo.update()
   end
 
@@ -45,6 +45,16 @@ defmodule TheBestory.Store.Topic
     topic
     |> change
     |> counters_changeset(stories_count: topic.stories_count + 1)
+    |> Repo.update()
+  end
+
+  @doc """
+  Decrement stories counter.
+  """
+  def decrement_stories_counter(%Topic{} = topic) do
+    topic
+    |> change
+    |> counters_changeset(stories_count: topic.stories_count - 1)
     |> Repo.update()
   end
 
@@ -60,11 +70,11 @@ defmodule TheBestory.Store.Topic
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
-    |> main_changeset(attrs)
+    |> public_changeset(attrs)
     |> counters_changeset(attrs)
   end
 
-  defp main_changeset(%Ecto.Changeset{} = changeset, attrs) do
+  defp public_changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
     |> cast(attrs, [:title, :slug, :description, :icon, :is_active])
     |> validate_required([:title, :slug, :is_active])

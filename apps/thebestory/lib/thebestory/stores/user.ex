@@ -47,7 +47,7 @@ defmodule TheBestory.Store.User
   def update(%User{} = user, attrs \\ %{}) do
     user
     |> change
-    |> parameters_changeset(attrs)
+    |> changeset(attrs)
     |> Repo.update()
   end
 
@@ -123,11 +123,11 @@ defmodule TheBestory.Store.User
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
-    |> parameters_changeset(attrs)
+    |> public_changeset(attrs)
     |> counters_changeset(attrs)
   end
 
-  defp parameters_changeset(%Ecto.Changeset{} = changeset, attrs) do
+  defp public_changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
     |> cast(attrs, [:username, :email, :password])
     |> validate_required([:username, :email, :password])
