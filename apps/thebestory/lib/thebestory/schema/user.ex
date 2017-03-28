@@ -15,6 +15,7 @@ defmodule TheBestory.Schema.User do
     field :email, :string
     field :password, :string
 
+    field :reactions_count, :integer, default: 0
     field :stories_count, :integer, default: 0
     field :comments_count, :integer, default: 0
 
@@ -85,13 +86,14 @@ defmodule TheBestory.Schema.User do
 
   defp changeset(%User{} = user, attrs) do
     user
-    |> cast(attrs, [:username, :email, :password, :stories_count, 
-                    :comments_count])
-    |> validate_required([:username, :email, :password, :stories_count, 
-                          :comments_count])
+    |> cast(attrs, [:username, :email, :password, :reactions_count, 
+                    :stories_count, :comments_count])
+    |> validate_required([:username, :email, :password, :reactions_count,
+                          :stories_count, :comments_count])
     |> validate_length(:username, min: 1, max: 64)
     |> validate_length(:email, min: 6, max: 255)
     |> validate_length(:password, min: 8, max: 255)
+    |> validate_number(:reactions_count, greater_than_or_equal_to: 0)
     |> validate_number(:stories_count, greater_than_or_equal_to: 0)
     |> validate_number(:comments_count, greater_than_or_equal_to: 0)
     |> put_password_hash

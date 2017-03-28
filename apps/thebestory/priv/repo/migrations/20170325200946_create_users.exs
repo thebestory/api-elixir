@@ -9,6 +9,7 @@ defmodule TheBestory.Repo.Migrations.Create.Users do
       add :email, :string, null: false
       add :password, :string, null: false
 
+      add :reactions_count, :integer, default: 0, null: false
       add :stories_count, :integer, default: 0, null: false
       add :comments_count, :integer, default: 0, null: false
 
