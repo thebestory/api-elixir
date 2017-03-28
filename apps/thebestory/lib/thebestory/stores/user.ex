@@ -4,19 +4,19 @@ defmodule TheBestory.Store.User
   alias TheBestory.Utils.Password
 
   @doc """
-  Gets a single user.
+  Get a single user.
   """
   def get(id), do: Repo.get(User, id)
   def get!(id), do: Repo.get!(User, id)
 
   @doc """
-  Gets a single user by it's username.
+  Get a single user by it's username.
   """
   def get_by_username(username), do: Repo.get_by(User, username: username)
   def get_by_username!(username), do: Repo.get_by!(User, username: username)
 
   @doc """
-  Gets a single user by it's email.
+  Get a single user by it's email.
   """
   def get_by_email(email), do: Repo.get_by(User, email: email)
   def get_by_email!(email), do: Repo.get_by!(User, email: email)
