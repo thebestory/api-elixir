@@ -64,7 +64,7 @@ defmodule TheBestory.Schema.Story do
       case Map.has_key?(attrs, ref) do
         true -> story
                 |> Repo.preload([ref])
-                |> put_assoc(ref, Map.get(ref))
+                |> put_assoc(ref, Map.get(attrs, ref))
         _ -> story
       end
     end)

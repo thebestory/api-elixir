@@ -78,7 +78,7 @@ defmodule TheBestory.Schema.Comment do
       case Map.has_key?(attrs, ref) do
         true -> comment
                 |> Repo.preload([ref])
-                |> put_assoc(ref, Map.get(ref))
+                |> put_assoc(ref, Map.get(attrs, ref))
         _ -> comment
       end
     end)
