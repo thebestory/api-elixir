@@ -1,3 +1,3 @@
-defmodule TheBestory.Store.Comments
+defmodule TheBestory.Store.Comment
 
 end

@@ -1,3 +1,3 @@
-defmodule TheBestory.Store.Stories
+defmodule TheBestory.Store.Story
 
 end

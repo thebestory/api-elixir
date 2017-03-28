@@ -1,3 +1,3 @@
-defmodule TheBestory.Store.Users
+defmodule TheBestory.Store.User
 
 end

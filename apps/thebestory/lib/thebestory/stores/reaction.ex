@@ -1,3 +1,3 @@
-defmodule TheBestory.Store.Reactions
+defmodule TheBestory.Store.Reaction
 
 end

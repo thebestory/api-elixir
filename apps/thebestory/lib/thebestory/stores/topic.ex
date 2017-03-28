@@ -1,3 +1,3 @@
-defmodule TheBestory.Store.Topics
+defmodule TheBestory.Store.Topic
 
 end
