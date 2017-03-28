@@ -2,6 +2,8 @@ defmodule TheBestory.Store.Story
   alias TheBestory.Repo
   alias TheBestory.Schema.Story
 
+  @reaction_object_type "story"
+
   @doc """
   Return the list of stories.
   """
@@ -50,6 +52,66 @@ defmodule TheBestory.Store.Story
       end
     end)
     |> changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Add a user's reaction to the story.
+  """
+  def add_reaction(%User{} = user, %Story{} = story),
+    do: add_reaction(story, user)
+  def add_reaction(%Story{} = story, %User{} = user) do
+    Repo.transaction(fn ->
+      with {:ok, reaction} <- Store.Reaction.create(
+              object_type: @reaction_object_type,
+              object_id: story.id,
+              user: user
+            ),
+           {:ok, _} <- increment_reactions_counter do
+        {:ok, reaction}
+      else
+        {:error, :something_wrong}
+      end
+    end)
+  end
+
+  @doc """
+  Increment reactions counter.
+  """
+  def increment_reactions_counter(%Story{} = story) do
+    story
+    |> change
+    |> counters_changeset(reactions_count: story.reactions_count + 1)
+    |> Repo.update()
+  end
+
+  @doc """
+  Increment comments counter.
+  """
+  def increment_comments_counter(%Story{} = story) do
+    story
+    |> change
+    |> counters_changeset(comments_count: story.comments_count + 1)
+    |> Repo.update()
+  end
+
+  @doc """
+  Decrement reactions counter.
+  """
+  def decrement_reactions_counter(%Story{} = story) do
+    story
+    |> change
+    |> counters_changeset(reactions_count: story.reactions_count - 1)
+    |> Repo.update()
+  end
+
+  @doc """
+  Decrement comments counter.
+  """
+  def decrement_comments_counter(%Story{} = story) do
+    story
+    |> change
+    |> counters_changeset(comments_count: story.comments_count - 1)
     |> Repo.update()
   end
 

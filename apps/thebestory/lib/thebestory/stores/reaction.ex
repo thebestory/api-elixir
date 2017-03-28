@@ -19,10 +19,11 @@ defmodule TheBestory.Store.Reaction
   @doc """
   Create a reaction.
   """
-  def create(attrs \\ %{}) do
+  def create(%{user: %User = user} = attrs) do
     with {:ok, id} <- Snowflake.next_id() do
       %Reaction{}
       |> change
+      |> put_assoc(:user, user)
       |> changeset(attrs)
       |> put_change(:id, Integer.to_string(id))
       |> Repo.insert()
@@ -33,10 +34,23 @@ defmodule TheBestory.Store.Reaction
   Update a reaction.
   """
   def update(%Reaction{} = reaction, attrs) do
-    reaction
-    |> change
+  def update(%Reaction{} = reaction, attrs) do
+    refs = [:user]
+
+    Enum.reduce(
+      refs,
+      reaction
+      |> Repo.preload(refs)
+      |> change,
+      fn(ref, reaction) ->
+      case Map.has_key?(attrs, ref) do
+        true -> reaction |> put_assoc(ref, Map.get(attrs, ref))
+           _ -> reaction
+      end
+    end)
     |> changeset(attrs)
     |> Repo.update()
+  end
   end
 
   @doc """
