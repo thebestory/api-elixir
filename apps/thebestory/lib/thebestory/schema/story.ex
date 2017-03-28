@@ -59,28 +59,15 @@ defmodule TheBestory.Schema.Story do
   @doc """
   Updates a story.
   """
-  def update(%Story{} = story, %User{} = author, %Topic{} = topic, 
-             attrs \\ %{}) do
-    story
-    |> Repo.preload([:author, :topic])
-    |> put_assoc(:author, author)
-    |> put_assoc(:topic, topic)
-    |> update(attrs)
-  end
-  def update(%Story{} = story, %User{} = author, attrs \\ %{}) do
-    story
-    |> Repo.preload([:author])
-    |> put_assoc(:author, author)
-    |> update(attrs)
-  end
-  def update(%Story{} = story, %Topic{} = topic, attrs \\ %{}) do
-    story
-    |> Repo.preload([:topic])
-    |> put_assoc(:topic, topic)
-    |> update(attrs)
-  end
   def update(%Story{} = story, attrs \\ %{}) do
-    story
+    Enum.reduce([:author, :topic], story, fn(ref) ->
+      case Map.has_key?(attrs, ref) do
+        true -> story
+                |> Repo.preload([ref])
+                |> put_assoc(ref, Map.get(ref))
+        _ -> story
+      end
+    end)
     |> changeset(attrs)
     |> Repo.update()
   end
