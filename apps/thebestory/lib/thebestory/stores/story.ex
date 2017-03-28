@@ -56,7 +56,7 @@ defmodule TheBestory.Store.Story
   @doc """
   Delete a story.
   """
-  defp delete(%Story{} = story), 
+  def delete(%Story{} = story), 
     do: Repo.delete(story)
 
 
