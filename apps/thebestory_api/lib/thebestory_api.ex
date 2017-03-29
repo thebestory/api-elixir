@@ -22,6 +22,9 @@ defmodule TheBestory.API do
       import Plug.Conn
       import TheBestory.API.Router.Helpers
       import TheBestory.API.Gettext
+
+      alias TheBestory.API.Controller
+      alias TheBestory.API.View
     end
   end
 
@@ -34,8 +37,10 @@ defmodule TheBestory.API do
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
 
       import TheBestory.API.Router.Helpers
-      import TheBestory.API.ErrorHelpers
       import TheBestory.API.Gettext
+      
+      alias TheBestory.API.View
+      alias TheBestory.API.Helpers
     end
   end
 

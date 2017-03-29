@@ -1,4 +1,4 @@
-defmodule TheBestory.API.ErrorHelpers do
+defmodule TheBestory.API.Helpers.Error do
   @moduledoc """
   Conveniences for translating and building error messages.
   """
