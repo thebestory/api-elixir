@@ -2,7 +2,6 @@ defmodule TheBestory.Schema.User do
   use Ecto.Schema
 
   alias TheBestory.Schema.Story
-  alias TheBestory.Schema.User
 
   @primary_key {:id, :string, []}
 

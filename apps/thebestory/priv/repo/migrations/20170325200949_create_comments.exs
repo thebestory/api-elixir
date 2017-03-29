@@ -24,7 +24,7 @@ defmodule TheBestory.Repo.Migrations.Create.Comments do
     end
 
     create index(:comments, [:author_id])
-    create index(:comments, [:topic_id])
+    create index(:comments, [:story_id])
     create index(:comments, [:parent_id])
   end
 end

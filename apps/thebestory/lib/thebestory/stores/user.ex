@@ -59,62 +59,62 @@ defmodule TheBestory.Store.User do
   end
 
   @doc """
-  Increment reactions counter.
+  Increment reactions count.
   """
-  def increment_reactions_counter(%User{} = user) do
+  def increment_reactions_count(%User{} = user) do
     user
     |> change
-    |> counters_changeset(reactions_count: user.reactions_count + 1)
+    |> counters_changeset(%{reactions_count: user.reactions_count + 1})
     |> Repo.update()
   end
 
   @doc """
-  Increment stories counter.
+  Increment stories count.
   """
-  def increment_stories_counter(%User{} = user) do
+  def increment_stories_count(%User{} = user) do
     user
     |> change
-    |> counters_changeset(stories_count: user.stories_count + 1)
+    |> counters_changeset(%{stories_count: user.stories_count + 1})
     |> Repo.update()
   end
 
   @doc """
-  Increment comments counter.
+  Increment comments count.
   """
-  def increment_comments_counter(%User{} = user) do
+  def increment_comments_count(%User{} = user) do
     user
     |> change
-    |> counters_changeset(comments_count: user.comments_count + 1)
+    |> counters_changeset(%{comments_count: user.comments_count + 1})
     |> Repo.update()
   end
 
   @doc """
-  Decrement reactions counter.
+  Decrement reactions count.
   """
-  def decrement_reactions_counter(%User{} = user) do
+  def decrement_reactions_count(%User{} = user) do
     user
     |> change
-    |> counters_changeset(reactions_count: user.reactions_count - 1)
+    |> counters_changeset(%{reactions_count: user.reactions_count - 1})
     |> Repo.update()
   end
 
   @doc """
-  Decrement stories counter.
+  Decrement stories count.
   """
-  def decrement_stories_counter(%User{} = user) do
+  def decrement_stories_count(%User{} = user) do
     user
     |> change
-    |> counters_changeset(stories_count: user.stories_count - 1)
+    |> counters_changeset(%{stories_count: user.stories_count - 1})
     |> Repo.update()
   end
 
   @doc """
-  Decrement comments counter.
+  Decrement comments count.
   """
-  def decrement_comments_counter(%User{} = user) do
+  def decrement_comments_count(%User{} = user) do
     user
     |> change
-    |> counters_changeset(comments_count: user.comments_count - 1)
+    |> counters_changeset(%{comments_count: user.comments_count - 1})
     |> Repo.update()
   end
 

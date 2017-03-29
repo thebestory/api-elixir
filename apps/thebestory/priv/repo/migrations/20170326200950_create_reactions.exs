@@ -9,6 +9,8 @@ defmodule TheBestory.Repo.Migrations.Create.Reactions do
       
       add :object_type, :string, null: false
       add :object_id, :string, null: false
+
+      timestamps()
     end
   end
 end

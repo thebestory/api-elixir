@@ -26,31 +26,28 @@ defmodule TheBestory.Store.Comment do
   @doc """
   Create a comment.
   """
-  def create(%{author: %User{} = author, story: %Story{} = story, 
-               parent: %Comment{} = parent} = attrs) do
-    with {:ok, id} <- Snowflake.next_id() do
-      %Comment{}
-      |> Repo.preload([:author, :story, :parent])
-      |> change
-      |> put_assoc(:author, author)
-      |> put_assoc(:story, story)
-      |> put_assoc(:parent, parent)
-      |> changeset(attrs)
-      |> Ecto.Changeset.put_change(:id, Integer.to_string(id))
-      |> Repo.insert()
-    end
-  end
   def create(%{author: %User{} = author, story: %Story{} = story} = attrs) do
-    with {:ok, id} <- Snowflake.next_id() do
-      %Comment{}
-      |> Repo.preload([:author, :story])
-      |> change
-      |> put_assoc(:author, author)
-      |> put_assoc(:story, story)
-      |> changeset(attrs)
-      |> put_change(:id, Integer.to_string(id))
-      |> Repo.insert()
-    end
+    Repo.transaction(fn ->
+      with {:ok, id} <- Snowflake.next_id() do
+        with {:ok, comment} <- %Comment{}
+                               |> Repo.preload([:author, :story])
+                               |> change
+                               |> put_assoc(:author, author)
+                               |> put_assoc(:story, story)
+                               |> changeset(attrs)
+                               |> put_change(:id, Integer.to_string(id))
+                               |> Repo.insert(),
+             {:ok, _} <- Store.User.increment_comments_count(author),
+             {:ok, _} <- Store.Story.increment_comments_count(story)
+        do
+          {:ok, comment}
+        else
+          _ -> Repo.rollback(:comment_not_created)
+        end
+      else
+        _ -> Repo.rollback(:id_not_generated)
+      end
+    end)
   end
 
   @doc """
@@ -66,7 +63,7 @@ defmodule TheBestory.Store.Comment do
       |> change,
       fn(ref, comment) ->
         case Map.has_key?(attrs, ref) do
-          true -> comment |> put_assoc(ref, Map.get(attrs, ref))
+          true -> comment |> put_assoc(ref, Map.get(attrs, ref)) # TODO: increment/decrement values for old/new ref
              _ -> comment
         end
       end)
@@ -81,56 +78,56 @@ defmodule TheBestory.Store.Comment do
     do: add_reaction(comment, user)
   def add_reaction(%Comment{} = comment, %User{} = user) do
     Repo.transaction(fn ->
-      with {:ok, reaction} <- Store.Reaction.create(
-              object_type: @reaction_object_type,
-              object_id: comment.id,
-              user: user
-            ),
-           {:ok, _} <- increment_reactions_counter(comment) do
+      with {:ok, reaction} <- Store.Reaction.create(%{
+                                object_type: @reaction_object_type,
+                                object_id: comment.id,
+                                user: user
+                              }),
+           {:ok, _} <- increment_reactions_count(comment) do
         {:ok, reaction}
       else
-        _ -> {:error, :something_wrong}
+        _ -> Repo.rollback(:reaction_not_created)
       end
     end)
   end
 
   @doc """
-  Increment reactions counter.
+  Increment reactions count.
   """
-  def increment_reactions_counter(%Comment{} = comment) do
+  def increment_reactions_count(%Comment{} = comment) do
     comment
     |> change
-    |> counters_changeset(reactions_count: comment.reactions_count + 1)
+    |> counters_changeset(%{reactions_count: comment.reactions_count + 1})
     |> Repo.update()
   end
 
   @doc """
-  Increment comments counter.
+  Increment comments count.
   """
-  def increment_comments_counter(%Comment{} = comment) do
+  def increment_comments_count(%Comment{} = comment) do
     comment
     |> change
-    |> counters_changeset(comments_count: comment.comments_count + 1)
+    |> counters_changeset(%{comments_count: comment.comments_count + 1})
     |> Repo.update()
   end
 
   @doc """
-  Decrement reactions counter.
+  Decrement reactions count.
   """
-  def decrement_reactions_counter(%Comment{} = comment) do
+  def decrement_reactions_count(%Comment{} = comment) do
     comment
     |> change
-    |> counters_changeset(reactions_count: comment.reactions_count - 1)
+    |> counters_changeset(%{reactions_count: comment.reactions_count - 1})
     |> Repo.update()
   end
 
   @doc """
-  Decrement comments counter.
+  Decrement comments count.
   """
-  def decrement_comments_counter(%Comment{} = comment) do
+  def decrement_comments_count(%Comment{} = comment) do
     comment
     |> change
-    |> counters_changeset(comments_count: comment.comments_count - 1)
+    |> counters_changeset(%{comments_count: comment.comments_count - 1})
     |> Repo.update()
   end
 
@@ -147,6 +144,8 @@ defmodule TheBestory.Store.Comment do
     |> create_changeset(attrs)
     |> moderation_changeset(attrs)
     |> counters_changeset(attrs)
+    |> put_published_datetime
+    |> put_edited_datetime
   end
 
   defp public_changeset(%Ecto.Changeset{} = changeset, attrs) do
@@ -157,9 +156,7 @@ defmodule TheBestory.Store.Comment do
 
   defp create_changeset(%Ecto.Changeset{} = changeset, _attrs) do
     changeset
-    |> cast_assoc(:author, [:required])
-    |> cast_assoc(:story, [:required])
-    |> cast_assoc(:parent)
+    |> validate_required([:author, :story])
   end
 
   defp moderation_changeset(%Ecto.Changeset{} = changeset, attrs) do
@@ -174,5 +171,27 @@ defmodule TheBestory.Store.Comment do
     |> validate_required([:reactions_count, :comments_count])
     |> validate_number(:reactions_count, greater_than_or_equal_to: 0)
     |> validate_number(:comments_count, greater_than_or_equal_to: 0)
+  end
+
+  defp put_published_datetime(changeset) do
+    case changeset do
+      %Ecto.Changeset{valid?: true, changes: %{is_published: is_published}} ->
+        case is_published do
+          true -> put_change(changeset, :published_at, DateTime.utc_now())
+             _ -> changeset
+        end
+      _ -> changeset
+    end
+  end
+
+  defp put_edited_datetime(changeset) do
+    case changeset do
+      %Ecto.Changeset{valid?: true, data: story} ->
+        case story.id do
+          nil -> changeset # it's a new story
+            _ -> put_change(changeset, :edited_at, DateTime.utc_now())
+        end
+      _ -> changeset
+    end
   end
 end

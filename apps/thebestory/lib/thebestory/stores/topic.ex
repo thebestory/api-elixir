@@ -19,6 +19,14 @@ defmodule TheBestory.Store.Topic do
     do: Repo.get!(Topic, id)
 
   @doc """
+  Get a single topic by it's slug.
+  """
+  def get_by_slug(slug),
+    do: Repo.get_by(Topic, slug: slug)
+  def get_by_slug!(slug),
+    do: Repo.get_by!(Topic, slug: slug)
+
+  @doc """
   Create a topic.
   """
   def create(attrs \\ %{}) do
@@ -42,22 +50,22 @@ defmodule TheBestory.Store.Topic do
   end
 
   @doc """
-  Increment stories counter.
+  Increment stories count.
   """
-  def increment_stories_counter(%Topic{} = topic) do
+  def increment_stories_count(%Topic{} = topic) do
     topic
     |> change
-    |> counters_changeset(stories_count: topic.stories_count + 1)
+    |> counters_changeset(%{stories_count: topic.stories_count + 1})
     |> Repo.update()
   end
 
   @doc """
-  Decrement stories counter.
+  Decrement stories count.
   """
-  def decrement_stories_counter(%Topic{} = topic) do
+  def decrement_stories_count(%Topic{} = topic) do
     topic
     |> change
-    |> counters_changeset(stories_count: topic.stories_count - 1)
+    |> counters_changeset(%{stories_count: topic.stories_count - 1})
     |> Repo.update()
   end
 

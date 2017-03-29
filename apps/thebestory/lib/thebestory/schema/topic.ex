@@ -2,7 +2,6 @@ defmodule TheBestory.Schema.Topic do
   use Ecto.Schema
 
   alias TheBestory.Schema.Story
-  alias TheBestory.Schema.Topic
 
   @primary_key {:id, :string, []}
 

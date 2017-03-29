@@ -71,6 +71,6 @@ defmodule TheBestory.Store.Reaction do
     changeset
     |> cast(attrs, [:object_type, :object_id])
     |> validate_required([:object_type, :object_id])
-    |> cast_assoc(:user, [:required])
+    |> validate_required([:user])
   end
 end
