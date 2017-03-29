@@ -60,10 +60,10 @@ defmodule TheBestory.API.Controller.Session do
 
   def delete(conn, _params) do
     jwt = Guardian.Plug.current_token(conn)
-    claims = Guardian.Plug.claims(conn)
+    {_, claims} = Guardian.Plug.claims(conn)
 
-    Guardian.revoke!(jwt, claims)
-
-    send_resp(conn, :no_content, "")
+    with :ok <- Guardian.revoke!(jwt, claims) do
+      send_resp(conn, :no_content, "")
+    end
   end
 end

@@ -31,7 +31,8 @@ config :guardian, Guardian,
   allowed_drift: 2000,
   verify_issuer: true, # optional
   secret_key: "woiuerojksldkjoierwoiejrlskjdf",
-  serializer: TheBestory.API.Guardian.Serializer
+  serializer: TheBestory.API.Guardian.Serializer,
+  hooks: GuardianDb
 
 config :guardian_db, GuardianDb,
   repo: TheBestory.Repo,
