@@ -16,15 +16,15 @@ defmodule TheBestory.Repo.Migrations.Create.Comments do
       add :published_at, :utc_datetime, null: true
       add :edited_at, :utc_datetime, null: true
 
-      add :author_id, references(:users, type: :string, on_delete: :nothing, null: false)
-      add :story_id, references(:stories, type: :string, on_delete: :nothing, null: false)
-      add :parent_id, references(:comments, type: :string, on_delete: :nothing, null: true)
+      add :author_id, :string, null: false
+      add :root_id, :string, null: false
+      add :parent_id, :string, null: false
 
       timestamps()
     end
 
     create index(:comments, [:author_id])
-    create index(:comments, [:story_id])
+    create index(:comments, [:root_id])
     create index(:comments, [:parent_id])
   end
 end

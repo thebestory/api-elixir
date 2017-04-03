@@ -4,7 +4,7 @@ defmodule TheBestory.Repo.Migrations.Create.Stories do
   def change do
     create table(:stories, primary_key: false) do
       add :id, :string, primary_key: true
-      
+
       add :content, :text, null: false
 
       add :reactions_count, :integer, default: 0, null: false
@@ -16,8 +16,8 @@ defmodule TheBestory.Repo.Migrations.Create.Stories do
       add :published_at, :utc_datetime, null: true
       add :edited_at, :utc_datetime, null: true
 
-      add :author_id, references(:users, type: :string, on_delete: :nothing, null: false)
-      add :topic_id, references(:topics, type: :string, on_delete: :nothing, null: false)
+      add :author_id, :string, null: false
+      add :topic_id, :string, null: false
 
       timestamps()
     end
