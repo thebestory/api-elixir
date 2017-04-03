@@ -7,8 +7,6 @@ defmodule TheBestory.Store.Story do
   alias TheBestory.Schema.User
   alias TheBestory.Store
 
-  @reaction_object_type "story"
-
   @doc """
   Return the list of stories.
   """

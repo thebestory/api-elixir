@@ -1,5 +1,5 @@
 defmodule TheBestory.Utils.Password do
-  # alias Comeonin.Bcrypt
+  alias Comeonin.Bcrypt
 
   @doc """
   Matches a raw and crypted password.

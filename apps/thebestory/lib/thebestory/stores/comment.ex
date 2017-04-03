@@ -7,8 +7,6 @@ defmodule TheBestory.Store.Comment do
   alias TheBestory.Schema.User
   alias TheBestory.Store
 
-  @reaction_object_type "comment"
-
   @doc """
   Return the list of comments.
   """
