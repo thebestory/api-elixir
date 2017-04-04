@@ -1,11 +1,14 @@
-defmodule TheBestory.Store.Story do
+defmodule TheBestory.Stores.Story do
   import Ecto.{Query, Changeset}, warn: false
 
   alias TheBestory.Repo
+  alias TheBestory.Schema.Comment
   alias TheBestory.Schema.Story
   alias TheBestory.Schema.Topic
   alias TheBestory.Schema.User
-  alias TheBestory.Store
+  alias TheBestory.Stores
+
+  @id_type "story"
 
   @doc """
   Return the list of stories.
@@ -26,17 +29,17 @@ defmodule TheBestory.Store.Story do
   """
   def create(%{author: %User{} = author, topic: %Topic{} = topic} = attrs) do
     Repo.transaction(fn ->
-      with {:ok, id} <- Snowflake.next_id() do
+      with {:ok, id} <- Stores.ID.generate(@id_type) do
         with {:ok, story} <- %Story{}
                              |> Repo.preload([:author, :topic])
                              |> change
                              |> put_assoc(:author, author)
                              |> put_assoc(:topic, topic)
                              |> changeset(attrs)
-                             |> put_change(:id, Integer.to_string(id))
+                             |> put_change(:id, id)
                              |> Repo.insert(),
-             {:ok, _} <- Store.User.increment_stories_count(author),
-             {:ok, _} <- Store.Topic.increment_stories_count(topic)
+             {:ok, _} <- Stores.User.increment_stories_count(author),
+             {:ok, _} <- Stores.Topic.increment_stories_count(topic)
         do
           {:ok, story}
         else
@@ -60,11 +63,13 @@ defmodule TheBestory.Store.Story do
       |> Repo.preload(refs)
       |> change,
       fn(ref, story) ->
+        # TODO: what we should to do with counters ???
         case Map.has_key?(attrs, ref) do
-          true -> story |> put_assoc(ref, Map.get(attrs, ref))  # TODO: increment/decrement values for old/new ref
+          true -> story |> put_assoc(ref, Map.get(attrs, ref))
              _ -> story
         end
-    end)
+      end
+    )
     |> changeset(attrs)
     |> Repo.update()
   end
@@ -76,10 +81,9 @@ defmodule TheBestory.Store.Story do
     do: add_reaction(story, user)
   def add_reaction(%Story{} = story, %User{} = user) do
     Repo.transaction(fn ->
-      with {:ok, reaction} <- Store.Reaction.create(%{
-                                object_type: @reaction_object_type,
-                                object_id: story.id,
-                                user: user
+      with {:ok, reaction} <- Stores.Reaction.create(%{
+                                user: user,
+                                object: story
                               }),
            {:ok, _} <- increment_reactions_count(story)
       do
@@ -91,12 +95,58 @@ defmodule TheBestory.Store.Story do
   end
 
   @doc """
+  Add a comment to the story.
+  """
+  def add_comment(%{author: %User{} = author, 
+                    story: %Story{} = story} = attrs) do
+    attrs = attrs
+            |> Map.put(:root, story)
+            |> Map.put(:parent, story)
+
+    Repo.transaction(fn ->
+      with {:ok, comment} <- create(attrs),
+           {:ok, _} <- increment_comments_count(story)
+      do
+        {:ok, comment}
+      else
+        _ -> Repo.rollback(:comment_not_created)
+      end
+    end)
+  end
+
+  @doc """
+  Remove a user's reaction from the story.
+  """
+  def remove_reaction(%User{} = user, %Story{} = story),
+    do: remove_reaction(story, user)
+  def remove_reaction(%Story{} = story, %User{} = user) do
+    # XXX: What if there is two+ (wtf) or zero valid reactions for user+object?
+    with {:ok, reaction} <- Stores.Reaction.get_valid_by_user_and_object(user, story) do
+      Repo.transaction(fn ->
+        with {:ok, reaction} <- Stores.Reaction.invalidate(reaction),
+             {:ok, _} <- decrement_reactions_count(story)
+        do
+          {:ok, reaction}
+        else
+          _ -> Repo.rollback(:reaction_not_invalidated)
+        end
+      end)
+    end
+  end
+
+  @doc """
+  Remove a comment from the story.
+  """
+  def remove_comment(%Comment{} = comment),
+    do: Stores.Comment.delete(comment)
+
+  @doc """
   Increment reactions count.
   """
   def increment_reactions_count(%Story{} = story) do
     story
     |> change
-    |> counters_changeset(%{reactions_count: story.reactions_count + 1})
+    |> changeset(%{reactions_count: story.reactions_count + 1})
     |> Repo.update()
   end
 
@@ -106,7 +156,7 @@ defmodule TheBestory.Store.Story do
   def increment_comments_count(%Story{} = story) do
     story
     |> change
-    |> counters_changeset(%{comments_count: story.comments_count + 1})
+    |> changeset(%{comments_count: story.comments_count + 1})
     |> Repo.update()
   end
 
@@ -116,7 +166,7 @@ defmodule TheBestory.Store.Story do
   def decrement_reactions_count(%Story{} = story) do
     story
     |> change
-    |> counters_changeset(%{reactions_count: story.reactions_count - 1})
+    |> changeset(%{reactions_count: story.reactions_count - 1})
     |> Repo.update()
   end
 
@@ -126,15 +176,21 @@ defmodule TheBestory.Store.Story do
   def decrement_comments_count(%Story{} = story) do
     story
     |> change
-    |> counters_changeset(%{comments_count: story.comments_count - 1})
+    |> changeset(%{comments_count: story.comments_count - 1})
     |> Repo.update()
   end
 
   @doc """
   Delete a story.
   """
-  def delete(%Story{} = story), 
-    do: Repo.delete(story)
+  def delete(%Story{} = story) do
+    # We don't decrement user's stories counter, because this story still
+    # displayed in the user's history of stories
+    story
+    |> change
+    |> changeset(%{is_removed: true})
+    |> Repo.update()
+  end
 
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
@@ -185,7 +241,7 @@ defmodule TheBestory.Store.Story do
 
   defp put_edited_datetime(changeset) do
     case changeset do
-      %Ecto.Changeset{valid?: true, data: story} ->
+      %Ecto.Changeset{valid?: true, data: story, changes: %{content: _}} ->
         case story.id do
           nil -> changeset
             _ -> put_change(changeset, :edited_at, DateTime.utc_now())

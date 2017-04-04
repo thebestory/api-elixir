@@ -1,9 +1,12 @@
-defmodule TheBestory.Store.Reaction do
+defmodule TheBestory.Stores.Reaction do
   import Ecto.{Query, Changeset}, warn: false
 
   alias TheBestory.Repo
   alias TheBestory.Schema.Reaction
   alias TheBestory.Schema.User
+  alias TheBestory.Stores
+
+  @id_type "reaction"
 
   @doc """
   Return the list of reactions.
@@ -20,57 +23,57 @@ defmodule TheBestory.Store.Reaction do
     do: Repo.get!(Reaction, id)
 
   @doc """
+  Get a single valid reaction by it's user and object ids.
+  """
+  def get_valid_by_user_and_object(%User{} = user, %{id: object_id} = _object),
+    do: Repo.get_by(Reaction, user: user, object_id: object_id, valid: true)
+  def get_valid_by_user_and_object!(%User{} = user, %{id: object_id} = _object),
+    do: Repo.get_by!(Reaction, user: user, object_id: object_id, valid: true)
+
+  @doc """
   Create a reaction.
   """
-  def create(%{user: %User{} = user} = attrs) do
-    with {:ok, id} <- Snowflake.next_id() do
-      %Reaction{}
-      |> change
-      |> put_assoc(:user, user)
-      |> changeset(attrs)
-      |> put_change(:id, Integer.to_string(id))
-      |> Repo.insert()
-    end
-  end
-
-  @doc """
-  Update a reaction.
-  """
-  def update(%Reaction{} = reaction, attrs) do
-    refs = [:user]
-
-    Enum.reduce(
-      refs,
-      reaction
-      |> Repo.preload(refs)
-      |> change,
-      fn(ref, reaction) ->
-        case Map.has_key?(attrs, ref) do
-          true -> reaction |> put_assoc(ref, Map.get(attrs, ref))
-             _ -> reaction
+  def create(%{user: %User{} = user, 
+               object: %{id: object_id} = _object} = _attrs) do
+    Repo.transaction(fn ->
+      with {:ok, id} <- Stores.ID.generate(@id_type) do
+        with {:ok, reaction} <- %Reaction{}
+                                |> put_assoc(:user, user)
+                                |> put_change(:object_id, object_id)
+                                |> put_change(:id, id)
+                                |> Repo.insert(),
+             {:ok, _} <- Stores.User.increment_reactions_count(user)
+        do
+          {:ok, reaction}
+        else
+          _ -> Repo.rollback(:reaction_not_created)
         end
+      else
+        _ -> Repo.rollback(:reaction_not_created)
       end
-    )
-    |> changeset(attrs)
-    |> Repo.update()
+    end)
   end
 
   @doc """
-  Delete a reaction.
+  Invalidate a reaction.
   """
-  def delete(%Reaction{} = reaction),
-    do: Repo.delete(reaction)
-
-
-  defp changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
-    |> create_changeset(attrs)
+  def invalidate(%Reaction{valid: true} = reaction) do
+    Repo.transaction(fn ->
+      with {:ok, reaction} <- reaction
+                              |> put_change(:valid, false)
+                              |> Repo.update(),
+           {:ok, _} <- Stores.User.decrement_reactions_count(reaction.user)
+      do
+        {:ok, reaction}
+      else
+        _ -> Repo.rollback(:reaction_not_invalidated)
+      end
+    end)
   end
 
-  defp create_changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
-    |> cast(attrs, [:object_type, :object_id])
-    |> validate_required([:object_type, :object_id])
-    |> validate_required([:user])
-  end
+  @doc """
+  Invalidate a reaction.
+  """
+  def delete(%Reaction{valid: true} = reaction),
+    do: invalidate(reaction)
 end

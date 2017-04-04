@@ -1,11 +1,13 @@
-defmodule TheBestory.Store.Comment do
+defmodule TheBestory.Stores.Comment do
   import Ecto.{Query, Changeset}, warn: false
 
   alias TheBestory.Repo
+  alias TheBestory.Schema.ID
   alias TheBestory.Schema.Comment
-  alias TheBestory.Schema.Story
   alias TheBestory.Schema.User
-  alias TheBestory.Store
+  alias TheBestory.Stores
+
+  @id_type "comment"
 
   @doc """
   Return the list of comments.
@@ -24,19 +26,21 @@ defmodule TheBestory.Store.Comment do
   @doc """
   Create a comment.
   """
-  def create(%{author: %User{} = author, story: %Story{} = story} = attrs) do
+  def create(%{author: %User{} = author, 
+               root: %{id: root_id} = _root,
+               parent: %{id: parent_id} = _parent} = attrs) do
     Repo.transaction(fn ->
-      with {:ok, id} <- Snowflake.next_id() do
+      with {:ok, id} <- Stores.ID.generate(@id_type) do
         with {:ok, comment} <- %Comment{}
-                               |> Repo.preload([:author, :story])
+                               |> Repo.preload([:author])
                                |> change
                                |> put_assoc(:author, author)
-                               |> put_assoc(:story, story)
+                               |> put_change(:root_id, root_id)
+                               |> put_change(:parent_id, parent_id)
                                |> changeset(attrs)
-                               |> put_change(:id, Integer.to_string(id))
+                               |> put_change(:id, id)
                                |> Repo.insert(),
-             {:ok, _} <- Store.User.increment_comments_count(author),
-             {:ok, _} <- Store.Story.increment_comments_count(story)
+             {:ok, _} <- Stores.User.increment_comments_count(author)
         do
           {:ok, comment}
         else
@@ -52,7 +56,7 @@ defmodule TheBestory.Store.Comment do
   Update a comment.
   """
   def update(%Comment{} = comment, attrs \\ %{}) do
-    refs = [:author, :story, :parent]
+    refs = [:author]
 
     Enum.reduce(
       refs,
@@ -60,11 +64,13 @@ defmodule TheBestory.Store.Comment do
       |> Repo.preload(refs)
       |> change,
       fn(ref, comment) ->
+        # TODO: what we should to do with counters ???
         case Map.has_key?(attrs, ref) do
-          true -> comment |> put_assoc(ref, Map.get(attrs, ref)) # TODO: increment/decrement values for old/new ref
+          true -> comment |> put_assoc(ref, Map.get(attrs, ref))
              _ -> comment
         end
-      end)
+      end
+    )
     |> changeset(attrs)
     |> Repo.update()
   end
@@ -76,12 +82,12 @@ defmodule TheBestory.Store.Comment do
     do: add_reaction(comment, user)
   def add_reaction(%Comment{} = comment, %User{} = user) do
     Repo.transaction(fn ->
-      with {:ok, reaction} <- Store.Reaction.create(%{
-                                object_type: @reaction_object_type,
-                                object_id: comment.id,
-                                user: user
+      with {:ok, reaction} <- Stores.Reaction.create(%{
+                                user: user,
+                                object: comment
                               }),
-           {:ok, _} <- increment_reactions_count(comment) do
+           {:ok, _} <- increment_reactions_count(comment)
+      do
         {:ok, reaction}
       else
         _ -> Repo.rollback(:reaction_not_created)
@@ -90,12 +96,58 @@ defmodule TheBestory.Store.Comment do
   end
 
   @doc """
+  Add a comment to the comment.
+  """
+  def add_comment(%{author: %User{} = _author, 
+                    comment: %Comment{} = comment} = attrs) do
+    attrs = attrs
+            |> Map.put(:root, %ID{id: comment.root_id})
+            |> Map.put(:parent, comment)
+
+    Repo.transaction(fn ->
+      with {:ok, comment} <- create(attrs),
+           {:ok, _} <- increment_comments_count(comment)
+      do
+        {:ok, comment}
+      else
+        _ -> Repo.rollback(:comment_not_created)
+      end
+    end)
+  end
+
+  @doc """
+  Remove a user's reaction from the comment.
+  """
+  def remove_reaction(%User{} = user, %Comment{} = comment),
+    do: remove_reaction(comment, user)
+  def remove_reaction(%Comment{} = comment, %User{} = user) do
+    # XXX: What if there is two+ (wtf) or zero valid reactions for user+object?
+    with {:ok, reaction} <- Stores.Reaction.get_valid_by_user_and_object(user, comment) do
+      Repo.transaction(fn ->
+        with {:ok, reaction} <- Stores.Reaction.invalidate(reaction),
+             {:ok, _} <- decrement_reactions_count(comment)
+        do
+          {:ok, reaction}
+        else
+          _ -> Repo.rollback(:reaction_not_invalidated)
+        end
+      end)
+    end
+  end
+
+  @doc """
+  Remove a comment from the comment.
+  """
+  def remove_comment(%Comment{} = comment),
+    do: delete(comment)
+
+  @doc """
   Increment reactions count.
   """
   def increment_reactions_count(%Comment{} = comment) do
     comment
     |> change
-    |> counters_changeset(%{reactions_count: comment.reactions_count + 1})
+    |> changeset(%{reactions_count: comment.reactions_count + 1})
     |> Repo.update()
   end
 
@@ -105,7 +157,7 @@ defmodule TheBestory.Store.Comment do
   def increment_comments_count(%Comment{} = comment) do
     comment
     |> change
-    |> counters_changeset(%{comments_count: comment.comments_count + 1})
+    |> changeset(%{comments_count: comment.comments_count + 1})
     |> Repo.update()
   end
 
@@ -115,7 +167,7 @@ defmodule TheBestory.Store.Comment do
   def decrement_reactions_count(%Comment{} = comment) do
     comment
     |> change
-    |> counters_changeset(%{reactions_count: comment.reactions_count - 1})
+    |> changeset(%{reactions_count: comment.reactions_count - 1})
     |> Repo.update()
   end
 
@@ -125,15 +177,22 @@ defmodule TheBestory.Store.Comment do
   def decrement_comments_count(%Comment{} = comment) do
     comment
     |> change
-    |> counters_changeset(%{comments_count: comment.comments_count - 1})
+    |> changeset(%{comments_count: comment.comments_count - 1})
     |> Repo.update()
   end
 
   @doc """
   Delete a comment.
   """
-  def delete(%Comment{} = comment),
-    do: Repo.delete(comment)
+  def delete(%Comment{} = comment) do
+    # We don't decrement user's comments counter, because this comment still
+    # displayed in the comments tree, and user's history of comments
+    # (but, as removed comment, without ability to show content)
+    comment
+    |> change
+    |> changeset(%{is_removed: true})
+    |> Repo.update()
+  end
 
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
@@ -154,7 +213,7 @@ defmodule TheBestory.Store.Comment do
 
   defp create_changeset(%Ecto.Changeset{} = changeset, _attrs) do
     changeset
-    |> validate_required([:author, :story])
+    |> validate_required([:author, :root_id, :parent_id])
   end
 
   defp moderation_changeset(%Ecto.Changeset{} = changeset, attrs) do
@@ -184,9 +243,9 @@ defmodule TheBestory.Store.Comment do
 
   defp put_edited_datetime(changeset) do
     case changeset do
-      %Ecto.Changeset{valid?: true, data: story} ->
-        case story.id do
-          nil -> changeset # it's a new story
+      %Ecto.Changeset{valid?: true, data: comment, changes: %{content: _}} ->
+        case comment.id do
+          nil -> changeset # it's a new comment
             _ -> put_change(changeset, :edited_at, DateTime.utc_now())
         end
       _ -> changeset

@@ -6,9 +6,13 @@ defmodule TheBestory.Schema.Reaction do
   @primary_key {:id, :string, []}
 
   schema "reactions" do
-    field :object_type, :string
+    field :user_id, :string
     field :object_id, :string
 
-    belongs_to :user, User, type: :string
+    field :valid, :boolean, default: true
+
+    belongs_to :user, User, type: :string, define_field: :false
+
+    timestamps()
   end
 end

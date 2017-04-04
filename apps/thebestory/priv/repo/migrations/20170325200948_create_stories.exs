@@ -1,4 +1,4 @@
-defmodule TheBestory.Repo.Migrations.Create.Stories do
+defmodule TheBestory.Repo.Migrations.CreateStories do
   use Ecto.Migration
 
   def change do

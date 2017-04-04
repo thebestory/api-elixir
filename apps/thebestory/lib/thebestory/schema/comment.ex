@@ -1,15 +1,13 @@
 defmodule TheBestory.Schema.Comment do
   use Ecto.Schema
 
-  alias TheBestory.Schema.Comment
-  alias TheBestory.Schema.Story
   alias TheBestory.Schema.User
 
   @primary_key {:id, :string, []}
 
   schema "comments" do
     field :content, :string
-    
+
     field :reactions_count, :integer, default: 0
     field :comments_count, :integer, default: 0
 
@@ -19,9 +17,11 @@ defmodule TheBestory.Schema.Comment do
     field :published_at, :utc_datetime
     field :edited_at, :utc_datetime
 
-    belongs_to :author, User, type: :string
-    belongs_to :story, Story, type: :string
-    belongs_to :parent, Comment, type: :string
+    field :author_id, :string
+    field :root_id, :string
+    field :parent_id, :string
+
+    belongs_to :author, User, type: :string, define_field: :false
 
     timestamps()
   end

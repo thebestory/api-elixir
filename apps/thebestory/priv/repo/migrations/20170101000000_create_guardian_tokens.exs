@@ -1,4 +1,4 @@
-defmodule TheBestory.Repo.Migrations.Create.GuardianTokens do
+defmodule TheBestory.Repo.Migrations.CreateGuardianTokens do
   use Ecto.Migration
 
   def change do

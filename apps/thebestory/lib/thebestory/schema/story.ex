@@ -8,7 +8,7 @@ defmodule TheBestory.Schema.Story do
 
   schema "stories" do
     field :content, :string
-    
+
     field :reactions_count, :integer, default: 0
     field :comments_count, :integer, default: 0
 
@@ -18,8 +18,11 @@ defmodule TheBestory.Schema.Story do
     field :published_at, :utc_datetime
     field :edited_at, :utc_datetime
 
-    belongs_to :author, User, type: :string
-    belongs_to :topic, Topic, type: :string
+    field :author_id, :string
+    field :topic_id, :string
+
+    belongs_to :author, User, type: :string, define_field: :false
+    belongs_to :topic, Topic, type: :string, define_field: :false
 
     timestamps()
   end

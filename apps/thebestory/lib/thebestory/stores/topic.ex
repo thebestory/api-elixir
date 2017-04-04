@@ -1,8 +1,11 @@
-defmodule TheBestory.Store.Topic do
+defmodule TheBestory.Stores.Topic do
   import Ecto.{Query, Changeset}, warn: false
 
   alias TheBestory.Repo
   alias TheBestory.Schema.Topic
+  alias TheBestory.Stores
+
+  @id_type "topic"
 
   @doc """
   Return the list of topics.
@@ -30,13 +33,22 @@ defmodule TheBestory.Store.Topic do
   Create a topic.
   """
   def create(attrs \\ %{}) do
-    with {:ok, id} <- Snowflake.next_id() do
-      %Topic{}
-      |> change
-      |> changeset(attrs)
-      |> put_change(:id, Integer.to_string(id))
-      |> Repo.insert()
-    end
+    Repo.transaction(fn ->
+      with {:ok, id} <- Stores.ID.generate(@id_type) do
+        with {:ok, topic} <- %Topic{}
+                             |> change
+                             |> changeset(attrs)
+                             |> put_change(:id, id)
+                             |> Repo.insert()
+        do
+          {:ok, topic}
+        else
+          _ -> Repo.rollback(:topic_not_created)
+        end
+      else
+        _ -> Repo.rollback(:id_not_generated)
+      end
+    end)
   end
 
   @doc """
@@ -55,7 +67,7 @@ defmodule TheBestory.Store.Topic do
   def increment_stories_count(%Topic{} = topic) do
     topic
     |> change
-    |> counters_changeset(%{stories_count: topic.stories_count + 1})
+    |> changeset(%{stories_count: topic.stories_count + 1})
     |> Repo.update()
   end
 
@@ -65,15 +77,9 @@ defmodule TheBestory.Store.Topic do
   def decrement_stories_count(%Topic{} = topic) do
     topic
     |> change
-    |> counters_changeset(%{stories_count: topic.stories_count - 1})
+    |> changeset(%{stories_count: topic.stories_count - 1})
     |> Repo.update()
   end
-
-  @doc """
-  Delete a topic.
-  """
-  def delete(%Topic{} = topic),
-    do: Repo.delete(topic)
 
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do

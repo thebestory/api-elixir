@@ -1,4 +1,4 @@
-defmodule TheBestory.Repo.Migrations.Create.Topics do
+defmodule TheBestory.Repo.Migrations.CreateTopics do
   use Ecto.Migration
 
   def change do

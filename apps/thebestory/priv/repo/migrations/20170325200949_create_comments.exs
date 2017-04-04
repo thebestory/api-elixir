@@ -1,4 +1,4 @@
-defmodule TheBestory.Repo.Migrations.Create.Comments do
+defmodule TheBestory.Repo.Migrations.CreateComments do
   use Ecto.Migration
 
   def change do

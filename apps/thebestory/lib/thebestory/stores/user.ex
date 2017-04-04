@@ -1,9 +1,12 @@
-defmodule TheBestory.Store.User do
+defmodule TheBestory.Stores.User do
   import Ecto.{Query, Changeset}, warn: false
 
   alias TheBestory.Repo
   alias TheBestory.Schema.User
+  alias TheBestory.Stores
   alias TheBestory.Utils.Password
+
+  @id_type "user"
 
   @doc """
   Return the list of users.
@@ -39,11 +42,11 @@ defmodule TheBestory.Store.User do
   Register a new user.
   """
   def register(attrs \\ %{}) do
-    with {:ok, id} <- Snowflake.next_id() do
+    with {:ok, id} <- Stores.ID.generate(@id_type) do
       %User{}
       |> change
       |> changeset(attrs)
-      |> put_change(:id, Integer.to_string(id))
+      |> put_change(:id, id)
       |> Repo.insert()
     end
   end
@@ -117,12 +120,6 @@ defmodule TheBestory.Store.User do
     |> counters_changeset(%{comments_count: user.comments_count - 1})
     |> Repo.update()
   end
-
-  @doc """
-  Delete a user.
-  """
-  def delete(%User{} = user),
-    do: Repo.delete(user)
 
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do

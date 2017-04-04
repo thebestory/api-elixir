@@ -1,4 +1,4 @@
-defmodule TheBestory.Repo.Migrations.Create.Reactions do
+defmodule TheBestory.Repo.Migrations.CreateReactions do
   use Ecto.Migration
 
   def change do
@@ -8,10 +8,13 @@ defmodule TheBestory.Repo.Migrations.Create.Reactions do
       add :user_id, :string, null: false
       add :object_id, :string, null: false
 
+      add :valid, :boolean, default: true, null: false
+
       timestamps()
     end
 
     create index(:reactions, [:user_id])
     create index(:reactions, [:object_id])
+    create index(:reactions, [:valid])
   end
 end
