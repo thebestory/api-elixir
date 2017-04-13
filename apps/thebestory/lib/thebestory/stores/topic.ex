@@ -1,5 +1,5 @@
 defmodule TheBestory.Stores.Topic do
-  import Ecto.{Query, Changeset}, warn: false
+  import Ecto.Changeset, warn: false
 
   alias TheBestory.Repo
   alias TheBestory.Schema.Topic
@@ -34,70 +34,76 @@ defmodule TheBestory.Stores.Topic do
   """
   def create(attrs \\ %{}) do
     Repo.transaction(fn ->
-      with {:ok, id} <- Stores.ID.generate(@id_type) do
-        with {:ok, topic} <- %Topic{}
-                             |> change
-                             |> changeset(attrs)
-                             |> put_change(:id, id)
-                             |> Repo.insert()
-        do
-          {:ok, topic}
-        else
-          _ -> Repo.rollback(:topic_not_created)
-        end
+      with {:ok, id}    <- Stores.ID.generate(@id_type),
+           {:ok, topic} <- %Topic{}
+                           |> changeset(attrs)
+                           |> put_change(:id, id)
+                           |> changeset()
+                           |> Repo.insert()
+      do
+        {:ok, topic}
       else
-        _ -> Repo.rollback(:id_not_generated)
+        _ -> Repo.rollback(:topic_not_created)
       end
     end)
   end
 
   @doc """
-  Update a topic.
+  Update the topic.
   """
   def update(%Topic{} = topic, attrs \\ %{}) do
     topic
-    |> change
     |> changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
-  Increment stories count.
+  Increment stories count of the topic.
   """
-  def increment_stories_count(%Topic{} = topic) do
-    topic
-    |> change
-    |> changeset(%{stories_count: topic.stories_count + 1})
-    |> Repo.update()
-  end
+  def increment_stories_count(%Topic{} = topic),
+    do: update(topic, %{stories_count: topic.stories_count + 1})
 
   @doc """
-  Decrement stories count.
+  Decrement stories count of the topic.
   """
-  def decrement_stories_count(%Topic{} = topic) do
-    topic
-    |> change
-    |> changeset(%{stories_count: topic.stories_count - 1})
-    |> Repo.update()
-  end
+  def decrement_stories_count(%Topic{} = topic),
+    do: update(topic, %{stories_count: topic.stories_count - 1})
 
+  @doc """
+  Delete the topic.
+  """
+  def delete(%Topic{} = topic),
+    do: update(topic, %{is_active: false})
+
+
+  defp changeset(%Topic{} = topic),
+    do: changeset(topic, %{})
+  defp changeset(%Ecto.Changeset{} = changeset),
+    do: changeset(changeset, %{})
+
+  defp changeset(%Topic{} = topic, attrs) do
+    topic
+    |> change()
+    |> changeset(attrs)
+  end
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
-    |> public_changeset(attrs)
-    |> counters_changeset(attrs)
-  end
-
-  defp public_changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
-    |> cast(attrs, [:title, :slug, :description, :icon, :is_active])
-    |> validate_required([:title, :slug, :is_active])
-  end
-
-  defp counters_changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
-    |> cast(attrs, [:stories_count])
-    |> validate_required([:stories_count])
+    |> cast(attrs, [
+      :title,
+      :slug,
+      :description,
+      :icon,
+      :stories_count,
+      :is_active
+    ])
+    |> validate_required([
+      :id,
+      :title,
+      :slug,
+      :stories_count,
+      :is_active
+    ])
     |> validate_number(:stories_count, greater_than_or_equal_to: 0)
   end
 end

@@ -3,17 +3,17 @@ defmodule TheBestory.Repo.Migrations.CreateUsers do
 
   def change do
     create table(:users, primary_key: false) do
-      add :id, :string, primary_key: true
+      add :id, :bigint, primary_key: true
 
-      add :username, :string, null: false
-      add :email, :string, null: false
-      add :password, :string, null: false
+      add :username, :string
+      add :email, :string
+      add :password, :string
 
-      add :reactions_count, :integer, default: 0, null: false
-      add :stories_count, :integer, default: 0, null: false
-      add :comments_count, :integer, default: 0, null: false
+      add :comments_count, :integer
+      add :reactions_count, :integer
+      add :stories_count, :integer
 
-      timestamps()
+      add :registered_at, :utc_datetime
     end
 
     create unique_index(:users, [:username])

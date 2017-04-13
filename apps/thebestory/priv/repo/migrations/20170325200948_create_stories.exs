@@ -3,23 +3,22 @@ defmodule TheBestory.Repo.Migrations.CreateStories do
 
   def change do
     create table(:stories, primary_key: false) do
-      add :id, :string, primary_key: true
+      add :id, :bigint, primary_key: true
 
-      add :content, :text, null: false
+      add :author_id, :bigint
+      add :topic_id, :bigint
 
-      add :reactions_count, :integer, default: 0, null: false
-      add :comments_count, :integer, default: 0, null: false
+      add :content, :text
 
-      add :is_published, :boolean, default: false, null: false
-      add :is_removed, :boolean, default: false, null: false
+      add :comments_count, :integer
+      add :reactions_count, :integer
 
-      add :published_at, :utc_datetime, null: true
-      add :edited_at, :utc_datetime, null: true
+      add :is_published, :boolean
+      add :is_removed, :boolean
 
-      add :author_id, :string, null: false
-      add :topic_id, :string, null: false
-
-      timestamps()
+      add :submitted_at, :utc_datetime
+      add :published_at, :utc_datetime
+      add :edited_at, :utc_datetime
     end
 
     create index(:stories, [:author_id])

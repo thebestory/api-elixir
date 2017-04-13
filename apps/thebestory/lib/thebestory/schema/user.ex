@@ -1,25 +1,17 @@
 defmodule TheBestory.Schema.User do
   use Ecto.Schema
 
-  alias TheBestory.Schema.Comment
-  alias TheBestory.Schema.Reaction
-  alias TheBestory.Schema.Story
-
-  @primary_key {:id, :string, []}
+  @primary_key {:id, :integer, []} # bigint # not for the changeset cast
 
   schema "users" do
     field :username, :string
     field :email, :string
     field :password, :string
 
-    field :reactions_count, :integer, default: 0
-    field :stories_count, :integer, default: 0
-    field :comments_count, :integer, default: 0
+    field :comments_count, :integer
+    field :reactions_count, :integer
+    field :stories_count, :integer
 
-    has_many :reactions, Reaction
-    has_many :stories, Story
-    has_many :comments, Comment
-
-    timestamps()
+    field :registered_at, :utc_datetime # not for the changeset cast
   end
 end

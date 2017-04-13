@@ -3,8 +3,8 @@ defmodule TheBestory.Repo.Migrations.CreateIds do
 
   def change do
     create table(:ids, primary_key: false) do
-      add :id, :string, primary_key: true
-      add :type, :string, null: false
+      add :id, :bigint, primary_key: true
+      add :type, :string
     end
   end
 

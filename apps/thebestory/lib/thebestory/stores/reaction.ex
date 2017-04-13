@@ -1,5 +1,5 @@
 defmodule TheBestory.Stores.Reaction do
-  import Ecto.{Query, Changeset}, warn: false
+  import Ecto.Changeset, warn: false
 
   alias TheBestory.Repo
   alias TheBestory.Schema.Reaction
@@ -34,20 +34,18 @@ defmodule TheBestory.Stores.Reaction do
   Create a reaction.
   """
   def create(%{user: %User{} = user, 
-               object: %{id: object_id} = _object} = _attrs) do
+               object: %{id: _} = object} = _attrs) do
     Repo.transaction(fn ->
-      with {:ok, id} <- Stores.ID.generate(@id_type) do
-        with {:ok, reaction} <- %Reaction{}
-                                |> put_assoc(:user, user)
-                                |> put_change(:object_id, object_id)
-                                |> put_change(:id, id)
-                                |> Repo.insert(),
-             {:ok, _} <- Stores.User.increment_reactions_count(user)
-        do
-          {:ok, reaction}
-        else
-          _ -> Repo.rollback(:reaction_not_created)
-        end
+      with {:ok, id}       <- Stores.ID.generate(@id_type),
+           {:ok, reaction} <- %Reaction{}
+                              |> put_change(:id, id)
+                              |> put_change(:user_id, user.id)
+                              |> put_change(:object_id, object.id)
+                              |> put_change(:added_at, DateTime.utc_now())
+                              |> Repo.insert(),
+           {:ok, _}        <- Stores.User.increment_reactions_count(user)
+      do
+        {:ok, reaction}
       else
         _ -> Repo.rollback(:reaction_not_created)
       end
@@ -55,25 +53,21 @@ defmodule TheBestory.Stores.Reaction do
   end
 
   @doc """
-  Invalidate a reaction.
+  Delete the reaction.
   """
-  def invalidate(%Reaction{valid: true} = reaction) do
+  def delete(%Reaction{valid: true} = reaction) do
     Repo.transaction(fn ->
-      with {:ok, reaction} <- reaction
+      with {:ok, user}     <- Stores.User.get(reaction.user_id),
+           {:ok, reaction} <- reaction
                               |> put_change(:valid, false)
+                              |> put_change(:removed_at, DateTime.utc_now())
                               |> Repo.update(),
-           {:ok, _} <- Stores.User.decrement_reactions_count(reaction.user)
+           {:ok, _}        <- Stores.User.decrement_reactions_count(user)
       do
         {:ok, reaction}
       else
-        _ -> Repo.rollback(:reaction_not_invalidated)
+        _ -> Repo.rollback(:reaction_not_deleted)
       end
     end)
   end
-
-  @doc """
-  Invalidate a reaction.
-  """
-  def delete(%Reaction{valid: true} = reaction),
-    do: invalidate(reaction)
 end

@@ -1,5 +1,5 @@
 defmodule TheBestory.Stores.Story do
-  import Ecto.{Query, Changeset}, warn: false
+  import Ecto.Changeset, warn: false
 
   alias TheBestory.Repo
   alias TheBestory.Schema.Comment
@@ -29,49 +29,93 @@ defmodule TheBestory.Stores.Story do
   """
   def create(%{author: %User{} = author, topic: %Topic{} = topic} = attrs) do
     Repo.transaction(fn ->
-      with {:ok, id} <- Stores.ID.generate(@id_type) do
-        with {:ok, story} <- %Story{}
-                             |> Repo.preload([:author, :topic])
-                             |> change
-                             |> put_assoc(:author, author)
-                             |> put_assoc(:topic, topic)
-                             |> changeset(attrs)
-                             |> put_change(:id, id)
-                             |> Repo.insert(),
-             {:ok, _} <- Stores.User.increment_stories_count(author),
-             {:ok, _} <- Stores.Topic.increment_stories_count(topic)
-        do
-          {:ok, story}
-        else
-          _ -> Repo.rollback(:story_not_created)
-        end
+      with {:ok, id}    <- Stores.ID.generate(@id_type),
+           {:ok, story} <- %Story{}
+                           |> changeset(%{
+                             comments_count: 0,
+                             reactions_count: 0,
+                             is_published: false,
+                             is_removed: false
+                           })
+                           |> changeset(attrs)
+                           |> changeset(%{
+                             author_id: author.id,
+                             topic_id: topic.id
+                           })
+                           |> put_change(:id, id)
+                           |> put_change(:submitted_at, DateTime.utc_now())
+                           |> changeset()
+                           |> Repo.insert(),
+           {:ok, _}     <- Stores.User.increment_stories_count(author),
+           {:ok, _}     <- Stores.Topic.increment_stories_count(topic)
+      do
+        {:ok, story}
       else
-        _ -> Repo.rollback(:id_not_generated)
+        _ -> Repo.rollback(:story_not_created)
       end
     end)
   end
 
   @doc """
-  Update a story.
+  Update the story.
   """
   def update(%Story{} = story, attrs \\ %{}) do
-    refs = [:author, :topic]
+    Repo.transaction(fn ->
+      chngst = changeset(story, attrs)
 
-    Enum.reduce(
-      refs,
-      story
-      |> Repo.preload(refs)
-      |> change,
-      fn(ref, story) ->
-        # TODO: what we should to do with counters ???
-        case Map.has_key?(attrs, ref) do
-          true -> story |> put_assoc(ref, Map.get(attrs, ref))
-             _ -> story
+      # TODO: 
+
+      # if Map.has_key?(attrs, :author) and 
+      #    story.author_id != Map.get(attrs, :author).id
+      # do
+      #   with {:ok, old} <- Stores.User.get(story.author_id),
+      #        {:ok, new} <- Stores.User.get(Map.get(attrs, :author).id),
+      #        {:ok, _}   <- Stores.User.decrement_stories_count(old),
+      #        {:ok, _}   <- Stores.User.increment_stories_count(new)
+      #   do
+      #     chngst = changeset(chngst, %{author_id: new.id})
+      #   else
+      #     _ -> Repo.rollback(:story_not_updated)
+      #   end
+      # end
+
+      if Map.has_key?(attrs, :topic) and 
+         story.topic_id != Map.get(attrs, :topic).id
+      do
+        with {:ok, old} <- Stores.Topic.get(story.topic_id),
+             {:ok, new} <- Stores.Topic.get(Map.get(attrs, :topic).id),
+             {:ok, _}   <- Stores.Topic.decrement_stories_count(old),
+             {:ok, _}   <- Stores.Topic.increment_stories_count(new)
+        do
+          chngst = changeset(chngst, %{topic_id: new.id})
+          Repo.update(chngst)
+        else
+          _ -> Repo.rollback(:story_not_updated)
         end
+      else
+        Repo.update(chngst)
       end
-    )
-    |> changeset(attrs)
-    |> Repo.update()
+    end)
+  end
+
+  @doc """
+  Add a comment to the story.
+  """
+  def add_comment(%{author: %User{} = _author, 
+                    story: %Story{} = story} = attrs) do
+    attrs = attrs
+            |> Map.put(:root, story)
+            |> Map.put(:parent, story)
+
+    Repo.transaction(fn ->
+      with {:ok, comment} <- Stores.Comment.create(attrs),
+           {:ok, _}       <- increment_comments_count(story)
+      do
+        {:ok, comment}
+      else
+        _ -> Repo.rollback(:comment_not_created)
+      end
+    end)
   end
 
   @doc """
@@ -85,7 +129,7 @@ defmodule TheBestory.Stores.Story do
                                 user: user,
                                 object: story
                               }),
-           {:ok, _} <- increment_reactions_count(story)
+           {:ok, _}        <- increment_reactions_count(story)
       do
         {:ok, reaction}
       else
@@ -95,141 +139,109 @@ defmodule TheBestory.Stores.Story do
   end
 
   @doc """
-  Add a comment to the story.
+  Remove the comment from the story.
   """
-  def add_comment(%{author: %User{} = author, 
-                    story: %Story{} = story} = attrs) do
-    attrs = attrs
-            |> Map.put(:root, story)
-            |> Map.put(:parent, story)
+  def remove_comment(%Comment{} = comment),
+    # We don't decrement story comments counter, because this comment
+    # still displayed, but as deleted.
+    do: Stores.Comment.delete(comment)
 
+  @doc """
+  Remove the user's reaction from the story.
+  """
+  def remove_reaction(%User{} = user, %Story{} = story),
+    do: remove_reaction(story, user)
+  def remove_reaction(%Story{} = story, %User{} = user) do
     Repo.transaction(fn ->
-      with {:ok, comment} <- create(attrs),
-           {:ok, _} <- increment_comments_count(story)
+      with {:ok, reaction} <- Stores.Reaction.get_valid_by_user_and_object(
+                                user, 
+                                story
+                              ),
+           {:ok, reaction} <- Stores.Reaction.delete(reaction),
+           {:ok, _}        <- decrement_reactions_count(story)
       do
-        {:ok, comment}
+        {:ok, reaction}
       else
-        _ -> Repo.rollback(:comment_not_created)
+        _ -> Repo.rollback(:reaction_not_deleted)
       end
     end)
   end
 
   @doc """
-  Remove a user's reaction from the story.
+  Increment comments count of the story.
   """
-  def remove_reaction(%User{} = user, %Story{} = story),
-    do: remove_reaction(story, user)
-  def remove_reaction(%Story{} = story, %User{} = user) do
-    # XXX: What if there is two+ (wtf) or zero valid reactions for user+object?
-    with {:ok, reaction} <- Stores.Reaction.get_valid_by_user_and_object(user, story) do
-      Repo.transaction(fn ->
-        with {:ok, reaction} <- Stores.Reaction.invalidate(reaction),
-             {:ok, _} <- decrement_reactions_count(story)
-        do
-          {:ok, reaction}
-        else
-          _ -> Repo.rollback(:reaction_not_invalidated)
-        end
-      end)
-    end
-  end
+  def increment_comments_count(%Story{} = story),
+    do: update(story, %{comments_count: story.comments_count + 1})
 
   @doc """
-  Remove a comment from the story.
+  Increment reactions count of the story.
   """
-  def remove_comment(%Comment{} = comment),
-    do: Stores.Comment.delete(comment)
+  def increment_reactions_count(%Story{} = story),
+    do: update(story, %{reactions_count: story.reactions_count + 1})
 
   @doc """
-  Increment reactions count.
+  Decrement comments count of the story.
   """
-  def increment_reactions_count(%Story{} = story) do
+  def decrement_comments_count(%Story{} = story),
+    do: update(story, %{comments_count: story.comments_count - 1})
+
+  @doc """
+  Decrement reactions count of the story.
+  """
+  def decrement_reactions_count(%Story{} = story),
+    do: update(story, %{reactions_count: story.reactions_count - 1})
+
+  @doc """
+  Delete the story.
+  """
+  def delete(%Story{} = story),
+    # We don't decrement user's stories counter, because this story
+    # still displayed in the user's history of stories.
+    do: update(story, %{is_removed: true})
+
+
+  defp changeset(%Story{} = story),
+    do: changeset(story, %{})
+  defp changeset(%Ecto.Changeset{} = changeset),
+    do: changeset(changeset, %{})
+
+  defp changeset(%Story{} = story, attrs) do
     story
-    |> change
-    |> changeset(%{reactions_count: story.reactions_count + 1})
-    |> Repo.update()
+    |> change()
+    |> changeset(attrs)
   end
-
-  @doc """
-  Increment comments count.
-  """
-  def increment_comments_count(%Story{} = story) do
-    story
-    |> change
-    |> changeset(%{comments_count: story.comments_count + 1})
-    |> Repo.update()
-  end
-
-  @doc """
-  Decrement reactions count.
-  """
-  def decrement_reactions_count(%Story{} = story) do
-    story
-    |> change
-    |> changeset(%{reactions_count: story.reactions_count - 1})
-    |> Repo.update()
-  end
-
-  @doc """
-  Decrement comments count.
-  """
-  def decrement_comments_count(%Story{} = story) do
-    story
-    |> change
-    |> changeset(%{comments_count: story.comments_count - 1})
-    |> Repo.update()
-  end
-
-  @doc """
-  Delete a story.
-  """
-  def delete(%Story{} = story) do
-    # We don't decrement user's stories counter, because this story still
-    # displayed in the user's history of stories
-    story
-    |> change
-    |> changeset(%{is_removed: true})
-    |> Repo.update()
-  end
-
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
     changeset
-    |> public_changeset(attrs)
-    |> create_changeset(attrs)
-    |> moderation_changeset(attrs)
-    |> counters_changeset(attrs)
-    |> put_published_datetime
-    |> put_edited_datetime
-  end
-
-  defp public_changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
-    |> cast(attrs, [:content])
-    |> validate_required([:content])
-  end
-
-  defp create_changeset(%Ecto.Changeset{} = changeset, _attrs) do
-    changeset
-    |> validate_required([:author, :topic])
-  end
-
-  defp moderation_changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
-    |> cast(attrs, [:is_published, :is_removed])
-    |> validate_required([:is_published, :is_removed])
-  end
-
-  defp counters_changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
-    |> cast(attrs, [:reactions_count, :comments_count])
-    |> validate_required([:reactions_count, :comments_count])
-    |> validate_number(:reactions_count, greater_than_or_equal_to: 0)
+    |> cast(attrs, [
+      :author_id,
+      :topic_id,
+      :content,
+      :comments_count,
+      :reactions_count,
+      :is_published,
+      :is_removed,
+      :published_at
+    ])
+    |> validate_required([
+      :id,
+      :author_id,
+      :content,
+      :comments_count,
+      :reactions_count,
+      :is_published,
+      :is_removed,
+      :submitted_at
+    ])
     |> validate_number(:comments_count, greater_than_or_equal_to: 0)
+    |> validate_number(:reactions_count, greater_than_or_equal_to: 0)
+    |> put_published_datetime()
+    |> put_edited_datetime()
   end
 
   defp put_published_datetime(changeset) do
     case changeset do
+      # TODO: pass, if published date was set manually
       %Ecto.Changeset{valid?: true, changes: %{is_published: is_published}} ->
         case is_published do
           true -> put_change(changeset, :published_at, DateTime.utc_now())
@@ -243,7 +255,7 @@ defmodule TheBestory.Stores.Story do
     case changeset do
       %Ecto.Changeset{valid?: true, data: story, changes: %{content: _}} ->
         case story.id do
-          nil -> changeset
+          nil -> changeset  # it's a new story
             _ -> put_change(changeset, :edited_at, DateTime.utc_now())
         end
       _ -> changeset

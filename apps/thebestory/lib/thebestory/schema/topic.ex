@@ -1,22 +1,16 @@
 defmodule TheBestory.Schema.Topic do
   use Ecto.Schema
 
-  alias TheBestory.Schema.Story
-
-  @primary_key {:id, :string, []}
+  @primary_key {:id, :integer, []} # bigint # not for the changeset cast
 
   schema "topics" do
     field :title, :string
     field :slug, :string
-    field :description, :string, default: ""
-    field :icon, :string, default: ""
+    field :description, :string
+    field :icon, :string
 
-    field :stories_count, :integer, default: 0
+    field :stories_count, :integer
 
-    field :is_active, :boolean, default: false
-
-    has_many :stories, Story
-
-    timestamps()
+    field :is_active, :boolean
   end
 end

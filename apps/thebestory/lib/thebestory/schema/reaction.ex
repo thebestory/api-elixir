@@ -1,18 +1,15 @@
 defmodule TheBestory.Schema.Reaction do
   use Ecto.Schema
 
-  alias TheBestory.Schema.User
-
-  @primary_key {:id, :string, []}
+  @primary_key {:id, :integer, []} # bigint # not for the changeset cast
 
   schema "reactions" do
-    field :user_id, :string
-    field :object_id, :string
+    field :user_id, :integer # bigint
+    field :object_id, :integer # bigint
 
-    field :valid, :boolean, default: true
+    field :valid, :boolean
 
-    belongs_to :user, User, type: :string, define_field: :false
-
-    timestamps()
+    field :added_at, :utc_datetime
+    field :removed_at, :utc_datetime
   end
 end

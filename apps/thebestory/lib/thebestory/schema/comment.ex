@@ -1,28 +1,23 @@
 defmodule TheBestory.Schema.Comment do
   use Ecto.Schema
 
-  alias TheBestory.Schema.User
-
-  @primary_key {:id, :string, []}
+  @primary_key {:id, :integer, []} # bigint # not for the changeset cast
 
   schema "comments" do
+    field :author_id, :integer # bigint
+    field :root_id, :integer # bigint # not for the changeset cast
+    field :parent_id, :integer # bigint # not for the changeset cast
+
     field :content, :string
 
-    field :reactions_count, :integer, default: 0
-    field :comments_count, :integer, default: 0
+    field :comments_count, :integer
+    field :reactions_count, :integer
 
-    field :is_published, :boolean, default: false
-    field :is_removed, :boolean, default: false
+    field :is_published, :boolean
+    field :is_removed, :boolean
 
+    field :submitted_at, :utc_datetime # not for the changeset cast
     field :published_at, :utc_datetime
-    field :edited_at, :utc_datetime
-
-    field :author_id, :string
-    field :root_id, :string
-    field :parent_id, :string
-
-    belongs_to :author, User, type: :string, define_field: :false
-
-    timestamps()
+    field :edited_at, :utc_datetime # not for the changeset cast
   end
 end
