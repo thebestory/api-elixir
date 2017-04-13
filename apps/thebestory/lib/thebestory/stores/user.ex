@@ -121,7 +121,7 @@ defmodule TheBestory.Stores.User do
   end
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
+    %{changeset | errors: [], valid?: true}
     |> cast(attrs, [
       :username,
       :email,

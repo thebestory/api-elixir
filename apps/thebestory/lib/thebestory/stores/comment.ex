@@ -204,7 +204,7 @@ defmodule TheBestory.Stores.Comment do
   end
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
+    %{changeset | errors: [], valid?: true}
     |> cast(attrs, [
       :author_id,
       :content,
@@ -225,8 +225,8 @@ defmodule TheBestory.Stores.Comment do
       :is_removed,
       :submitted_at
     ])
-    |> validate_number(:reactions_count, greater_than_or_equal_to: 0)
     |> validate_number(:comments_count, greater_than_or_equal_to: 0)
+    |> validate_number(:reactions_count, greater_than_or_equal_to: 0)
     |> put_published_datetime()
     |> put_edited_datetime()
   end

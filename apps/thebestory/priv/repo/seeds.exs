@@ -13,7 +13,7 @@
 defmodule TheBestory.Repo.Seed do
   alias TheBestory.Repo
   alias TheBestory.Schema
-  alias TheBestory.Store
+  alias TheBestory.Stores
 
   @users [
     %{username: "thebestory", email: "thebestory@thebestory.com", password: "thebestory"},
@@ -86,21 +86,21 @@ defmodule TheBestory.Repo.Seed do
 
   defp insert_users do
     Enum.map(@users, fn(seed) -> 
-      with {:ok, user} <- Store.User.register(seed), do: user
+      with {:ok, user} <- Stores.User.create(seed), do: user
     end)
   end
 
   defp insert_topics do
     Enum.map(@topics, fn(seed) ->
-      with {:ok, topic} <- Store.Topic.create(seed), do: topic
+      with {:ok, topic} <- Stores.Topic.create(seed), do: topic
     end)
   end
 
   defp insert_stories do
     Enum.map(@stories, fn(seed) ->
-      with {:ok, story} <- Store.Story.create(%{
-        author: Store.User.get_by_username!(seed.author),
-        topic: Store.Topic.get_by_slug!(seed.topic),
+      with {:ok, story} <- Stores.Story.create(%{
+        author: Stores.User.get_by_username!(seed.author),
+        topic: Stores.Topic.get_by_slug!(seed.topic),
         content: seed.content,
         is_published: true
       }), do: story

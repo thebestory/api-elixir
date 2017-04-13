@@ -212,7 +212,7 @@ defmodule TheBestory.Stores.Story do
   end
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
+    %{changeset | errors: [], valid?: true}
     |> cast(attrs, [
       :author_id,
       :topic_id,

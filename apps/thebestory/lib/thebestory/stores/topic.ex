@@ -36,6 +36,9 @@ defmodule TheBestory.Stores.Topic do
     Repo.transaction(fn ->
       with {:ok, id}    <- Stores.ID.generate(@id_type),
            {:ok, topic} <- %Topic{}
+                           |> changeset(%{
+                             stories_count: 0
+                           })
                            |> changeset(attrs)
                            |> put_change(:id, id)
                            |> changeset()
@@ -88,7 +91,7 @@ defmodule TheBestory.Stores.Topic do
   end
 
   defp changeset(%Ecto.Changeset{} = changeset, attrs) do
-    changeset
+    %{changeset | errors: [], valid?: true}
     |> cast(attrs, [
       :title,
       :slug,
