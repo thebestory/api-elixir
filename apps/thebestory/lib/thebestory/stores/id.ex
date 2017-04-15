@@ -25,10 +25,11 @@ defmodule TheBestory.Stores.ID do
   """
   def generate(type \\ @id_type) do
     with {:ok, id} <- Snowflake.next_id(),
-         {:ok, _}  <- %ID{}
+         {:ok, id} <- %ID{}
                       |> change
                       |> put_change(:id, id)
                       |> put_change(:type, type)
+                      |> validate_required([:id, :type])
                       |> Repo.insert()
     do
       {:ok, id}
@@ -40,10 +41,11 @@ defmodule TheBestory.Stores.ID do
   @doc """
   Update ID type.
   """
-  def update(%ID{} = id, type \\ @id_type) do
+  def update(%ID{} = id, type) do
     id
     |> change
     |> put_change(:type, type)
+    |> validate_required([:id, :type])
     |> Repo.update()
   end
 end
