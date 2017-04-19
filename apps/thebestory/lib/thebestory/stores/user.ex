@@ -56,7 +56,7 @@ defmodule TheBestory.Stores.User do
                           |> changeset()
                           |> Repo.insert()
       do
-        {:ok, user}
+        user
       else
         _ -> Repo.rollback(:user_not_created)
       end

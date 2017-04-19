@@ -21,11 +21,11 @@ defmodule TheBestory.Stores.ID do
     do: Repo.get!(ID, id)
 
   @doc """
-  Generate a new ID.
+  Create a new ID.
   """
-  def generate(type \\ @id_type) do
+  def create(type \\ @id_type) do
     with {:ok, id} <- Snowflake.next_id(),
-         {:ok, id} <- %ID{}
+         {:ok, id}  <- %ID{}
                       |> change
                       |> put_change(:id, id)
                       |> put_change(:type, type)
@@ -35,6 +35,17 @@ defmodule TheBestory.Stores.ID do
       {:ok, id}
     else
       _ -> {:error, :id_not_generated}
+    end
+  end
+
+  @doc """
+  Generate a new ID.
+  """
+  def generate(type \\ @id_type) do
+    case create(type) do
+      {:ok, id}       -> {:ok, id.id}
+      {:error, error} -> {:error, error}
+      _               -> {:error, :id_not_generated}
     end
   end
 

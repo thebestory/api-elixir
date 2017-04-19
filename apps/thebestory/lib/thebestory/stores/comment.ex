@@ -51,7 +51,7 @@ defmodule TheBestory.Stores.Comment do
            {:ok, _}       <- Stores.User.increment_comments_count(author),
            {:ok, _}       <- increment_parent_comments_count(parent)
       do
-        {:ok, comment}
+        comment
       else
         _ -> Repo.rollback(:comment_not_created)
       end
@@ -102,7 +102,7 @@ defmodule TheBestory.Stores.Comment do
       with {:ok, comment} <- create(attrs),
            {:ok, _}       <- increment_comments_count(comment)
       do
-        {:ok, comment}
+        comment
       else
         _ -> Repo.rollback(:comment_not_created)
       end
@@ -122,7 +122,7 @@ defmodule TheBestory.Stores.Comment do
                               }),
            {:ok, _}        <- increment_reactions_count(comment)
       do
-        {:ok, reaction}
+        reaction
       else
         _ -> Repo.rollback(:reaction_not_created)
       end
@@ -151,7 +151,7 @@ defmodule TheBestory.Stores.Comment do
            {:ok, reaction} <- Stores.Reaction.delete(reaction),
            {:ok, _}        <- decrement_reactions_count(comment)
       do
-        {:ok, reaction}
+        reaction
       else
         _ -> Repo.rollback(:reaction_not_deleted)
       end

@@ -49,7 +49,7 @@ defmodule TheBestory.Stores.Story do
            {:ok, _}     <- Stores.User.increment_stories_count(author),
            {:ok, _}     <- Stores.Topic.increment_stories_count(topic)
       do
-        {:ok, story}
+        story
       else
         _ -> Repo.rollback(:story_not_created)
       end
@@ -111,7 +111,7 @@ defmodule TheBestory.Stores.Story do
       with {:ok, comment} <- Stores.Comment.create(attrs),
            {:ok, _}       <- increment_comments_count(story)
       do
-        {:ok, comment}
+        comment
       else
         _ -> Repo.rollback(:comment_not_created)
       end
@@ -131,7 +131,7 @@ defmodule TheBestory.Stores.Story do
                               }),
            {:ok, _}        <- increment_reactions_count(story)
       do
-        {:ok, reaction}
+        reaction
       else
         _ -> Repo.rollback(:reaction_not_created)
       end
@@ -160,7 +160,7 @@ defmodule TheBestory.Stores.Story do
            {:ok, reaction} <- Stores.Reaction.delete(reaction),
            {:ok, _}        <- decrement_reactions_count(story)
       do
-        {:ok, reaction}
+        reaction
       else
         _ -> Repo.rollback(:reaction_not_deleted)
       end

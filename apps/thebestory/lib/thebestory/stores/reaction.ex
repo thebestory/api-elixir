@@ -45,7 +45,7 @@ defmodule TheBestory.Stores.Reaction do
                               |> Repo.insert(),
            {:ok, _}        <- Stores.User.increment_reactions_count(user)
       do
-        {:ok, reaction}
+        reaction
       else
         _ -> Repo.rollback(:reaction_not_created)
       end
@@ -64,7 +64,7 @@ defmodule TheBestory.Stores.Reaction do
                               |> Repo.update(),
            {:ok, _}        <- Stores.User.decrement_reactions_count(user)
       do
-        {:ok, reaction}
+        reaction
       else
         _ -> Repo.rollback(:reaction_not_deleted)
       end

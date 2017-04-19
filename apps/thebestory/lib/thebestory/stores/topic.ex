@@ -44,7 +44,7 @@ defmodule TheBestory.Stores.Topic do
                            |> changeset()
                            |> Repo.insert()
       do
-        {:ok, topic}
+        topic
       else
         _ -> Repo.rollback(:topic_not_created)
       end
