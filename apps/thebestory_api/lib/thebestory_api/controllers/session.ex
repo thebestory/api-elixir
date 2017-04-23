@@ -1,7 +1,7 @@
 defmodule TheBestory.API.Controller.Session do
   use TheBestory.API, :controller
 
-  alias TheBestory.Store
+  alias TheBestory.Stores
   alias TheBestory.Utils.Password
 
   @fallback_controller Controller.Fallback
@@ -29,7 +29,7 @@ defmodule TheBestory.API.Controller.Session do
 
   def create(conn, 
              %{"username" => username, "password" => password} = _params) do
-    user = Store.User.get_by_username!(username)
+    user = Stores.User.get_by_username!(username)
 
     case Password.match(password, user.password) do
       true -> 

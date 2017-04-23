@@ -3,7 +3,7 @@ defmodule TheBestory.API.Controller.Story do
 
   alias TheBestory.Repo
   alias TheBestory.Schema.Story
-  alias TheBestory.Store
+  alias TheBestory.Stores
 
   @fallback_controller Controller.Fallback
 
@@ -18,12 +18,12 @@ defmodule TheBestory.API.Controller.Story do
   @preload_fields [:author, :topic]
 
   def index(conn, _params) do
-    stories = Store.Story.list() |> Repo.preload(@preload_fields)
+    stories = Stores.Story.list() |> Repo.preload(@preload_fields)
     render(conn, "index.json", stories: stories)
   end
 
   def create(conn, %{"story" => params}) do
-    with {:ok, %Story{} = story} <- Store.Story.create(params) do
+    with {:ok, %Story{} = story} <- Stores.Story.create(params) do
       story = story |> Repo.preload(@preload_fields)
 
       conn
@@ -34,22 +34,22 @@ defmodule TheBestory.API.Controller.Story do
   end
 
   def show(conn, %{"id" => id}) do
-    story = Store.Story.get!(id) |> Repo.preload(@preload_fields)
+    story = Stores.Story.get!(id) |> Repo.preload(@preload_fields)
     render(conn, "show.json", story: story)
   end
 
   def update(conn, %{"id" => id, "story" => params}) do
-    story = Store.Story.get!(id)
+    story = Stores.Story.get!(id)
 
-    with {:ok, %Story{} = story} <- Store.Story.update(story, params) do
+    with {:ok, %Story{} = story} <- Stores.Story.update(story, params) do
       render(conn, "show.json", story: story)
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    story = Store.Story.get!(id)
+    story = Stores.Story.get!(id)
 
-    with {:ok, %Story{}} <- Store.Story.delete(story) do
+    with {:ok, %Story{}} <- Stores.Story.delete(story) do
       send_resp(conn, :no_content, "")
     end
   end

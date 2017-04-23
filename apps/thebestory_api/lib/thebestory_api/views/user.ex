@@ -14,8 +14,8 @@ defmodule TheBestory.API.View.User do
   def render("user.json", %{user: user}), do: %{
     id: user.id,
     username: user.username,
+    comments_count: user.comments_count,
     reactions_count: user.reactions_count,
-    stories_count: user.stories_count,
-    comments_count: user.comments_count
+    stories_count: user.stories_count
   }
 end

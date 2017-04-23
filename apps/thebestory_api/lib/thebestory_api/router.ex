@@ -24,7 +24,7 @@ defmodule TheBestory.API.Router do
       get    "/", Controller.Session, :show,   as: :session
       post   "/", Controller.Session, :create, as: :session
       patch  "/", Controller.Session, :update, as: :session
-      put    "/", Controller.Session, :update, as: :session
+      put    "/", Controller.Session, :update
       delete "/", Controller.Session, :delete, as: :session
     end
 
@@ -39,17 +39,28 @@ defmodule TheBestory.API.Router do
     end
 
     scope "/stories" do
+      get    "/",       Controller.Story, :index, as: :story
+      post   "/",       Controller.Story, :create, as: :story
+
+      get    "/:id",    Controller.Story, :show,   as: :story
+      patch  "/:id",    Controller.Story, :update, as: :story
+      put    "/:id",    Controller.Story, :update
+      delete "/:id",    Controller.Story, :delete, as: :story
+
       get    "/latest", Controller.Story, :latest, as: :story_latest
       get    "/hot",    Controller.Story, :hot,    as: :story_hot
       get    "/top",    Controller.Story, :top,    as: :story_top
       get    "/random", Controller.Story, :random, as: :story_random
+    end
 
-      post   "/",    Controller.Story, :create, as: :story
+    scope "/comments" do
+      get    "/",    Controller.Comment, :index,  as: :comment
+      post   "/",    Controller.Commnet, :create, as: :topic
 
-      get    "/:id", Controller.Story, :show,   as: :story
-      patch  "/:id", Controller.Story, :update, as: :story
-      put    "/:id", Controller.Story, :update
-      delete "/:id", Controller.Story, :delete, as: :story
+      get    "/:id", Controller.Comment, :show,   as: :comment
+      patch  "/:id", Controller.Comment, :update, as: :commnet
+      put    "/:id", Controller.Comment, :update
+      delete "/:id", Controller.Comment, :delete, as: :comment
     end
   end
 end
