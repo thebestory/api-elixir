@@ -29,7 +29,7 @@ defmodule TheBestory.API.Controller.User do
   end
 
   def update(conn, %{"id" => id, "user" => params}) do
-    user = Store.User.get!(id)
+    user = Stores.User.get!(id)
 
     with {:ok, %User{} = user} <- Stores.User.update(user, params) do
       render(conn, "show.json", user: user)

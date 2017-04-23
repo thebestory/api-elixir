@@ -108,6 +108,14 @@ defmodule TheBestory.Stores.User do
   def decrement_stories_count(%User{} = user),
     do: update(user, %{stories_count: user.stories_count - 1})
 
+  @doc """
+  Delete the user.
+  """
+  def delete(%User{} = _user),
+    # We don't delete the user actually, only flag as a removed.
+    # do: update(user, %{is_removed: true})
+    do: {:error, :not_implemented}
+
 
   defp changeset(%User{} = user),
     do: changeset(user, %{})
